@@ -1,2 +1,12 @@
+.mainPage{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
 
-
+.playback-fixed {
+    position: fixed;
+    bottom: 25px;
+    z-index: 9999; /* stays above other content */
+  }
