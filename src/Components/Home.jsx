@@ -5,7 +5,7 @@ import WhyUs from "./WhyUs"
 export default function Home(){
     return(
         <>
-        <div className='w-[1440px] h-[2047.5px]'>
+        <div className='w-full min-h-screen'>
      <Navbar/>
      <Welcome/>
      <Rectangle/>

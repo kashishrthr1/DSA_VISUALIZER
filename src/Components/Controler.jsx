@@ -1,9 +1,9 @@
 import { useState } from "react"
-import generateArray from "/../utils/generateArray.js"
+
 
 export default function Controler(){
     const [inputSize, setInputSize] = useState(10);
-    const [bars, setBars] = useState([1,69,10,82,11,25,8,14,2,51]);
+    // const [bars, setBars] = useState([1,69,10,82,11,25,8,14,2,51]);
 
 
 
@@ -45,10 +45,9 @@ export default function Controler(){
       </div>
 
       {/* --- Generate Button --- */}
-      <button className="px-6 py-2 bg-[#121218] border-2 border-white text-white rounded-full font-['IBM_Plex_Mono']  text-[16px]" onClick={()=>{
-        let array = generateArray(inputSize);
-        setBars(array);
-      }}>
+      <button className="px-6 py-2 bg-[#121218] border-2 border-white text-white rounded-full font-['IBM_Plex_Mono']  text-[16px]"
+    
+  >
         Generate
       </button>
 

@@ -1,26 +1,23 @@
-export default function Navbar(){
-    return(
-        <>
-        <div className="absolute w-[1440px] h-[94.5px] rotate-0 opacity-100 bg-black">
-            <div className="absolute w-[89.5px] h-[79.5px] top-[5.25px] left-[19.5px] opacity-100 bg-[rgba(217,217,217,1)] ">
-                <div className="absolute w-[62px] h-[36px] top-[27px] left-[33px] opacity-100 ">
-                        <span>
-                            Logo
-                        </span>
-                </div>
-            </div>
-            <div className="absolute w-[282.75px] h-[31.5px] top-[31.5px] left-[125.25px] opacity-100">
-                  <span className="font-['IBM_Plex_Mono'] font-normal  text-[30px]leading-[100%] tracking-[0] text-white">
-                        DSA Visualizer
-                    </span>
-            </div>
-           <div className="absolute top-[22.47px] left-[1200px] w-[45px] h-[45px] flex items-center justify-center">
-                <span className="material-symbols-outlined text-white text-[48px]">
-                    dark_mode
-                </span>
-            </div>
-
+export default function Navbar() {
+  return (
+    <nav className="w-full bg-black px-4 py-3 flex items-center justify-between overflow-hidden">
+      {/* Left: Logo + Title */}
+      <div className="flex items-center space-x-3 min-w-0">
+        {/* Logo */}
+        <div className="w-10 h-10 bg-gray-300 flex items-center justify-center flex-shrink-0">
+          <span className="font-bold text-sm sm:text-base">Logo</span>
         </div>
-        </>
-    )
+
+        {/* Title */}
+        <span className="text-white text-sm sm:text-base md:text-lg lg:text-xl font-mono truncate max-w-[120px] sm:max-w-[200px] md:max-w-[300px]">
+          DSA Visualizer
+        </span>
+      </div>
+
+      {/* Right: Dark Mode Button */}
+      <button className="text-white text-2xl sm:text-3xl flex-shrink-0">
+        <span className="material-symbols-outlined">dark_mode</span>
+      </button>
+    </nav>
+  );
 }

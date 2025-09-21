@@ -4,7 +4,7 @@ import NavMain from "./NavMain";
 export default function MainPage(){
     return(
         <>
-         <div className="h-[570px] w-[1280px]">
+         <div className="w-full min-h-screen">
             <NavMain/>
             <Controler/>
          </div>
