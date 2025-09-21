@@ -1,6 +1,10 @@
 import "../App.css";
 
-function BarsDisplay({ bars }) {
+function BarsDisplay({ bars, inputSize }) {
+  if (!bars || !bars.bars) return null;
+
+  const { bars: array, comparing = [], swapping = [] } = bars;
+
   return (
     <div
       style={{
@@ -8,28 +12,31 @@ function BarsDisplay({ bars }) {
         gap: "4px",
         alignItems: "flex-end",
         margin: "25px",
-        // border: "2px solid grey",
         borderRadius: "50px",
         padding: "20px",
-        // width: "100vb",
-        // height: "60vh",
       }}
     >
-      {bars.map((value, index) => (
-        <div
-          key={index}
-          style={{
-            backgroundColor: "lightblue",
-            height: `${value * 5}px`,
-            width: "75px",
-            borderRadius: "4px",
-            display: "flex",
-            justifyContent: "center",
-          }}
-        >
-          {value}
-        </div>
-      ))}
+      {array.map((value, index) => {
+        let color = "lightblue";
+        if (comparing.includes(index)) color = "orange";
+        if (swapping.includes(index)) color = "red";
+
+        return (
+          <div
+            key={index}
+            style={{
+              backgroundColor: color,
+              height: `${value * 5}px`,
+              width: `${400 / inputSize}px`,
+              borderRadius: "4px",
+              display: "flex",
+              justifyContent: "center",
+            }}
+          >
+            {value}
+          </div>
+        );
+      })}
     </div>
   );
 }
