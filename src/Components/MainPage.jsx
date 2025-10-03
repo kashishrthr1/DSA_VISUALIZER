@@ -1,30 +1,36 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Controler from "./Controler";
 import NavMain from "./NavMain";
 import BarsDisplay from "./BarsDisplay";
-import CodeDisplay from "./CodeDisplay";
 import "../App.css";
 
 export default function MainPage() {
+  const initialArr = [1, 69, 10, 82, 11, 25, 8, 14, 2, 51];
+
   const [isPlaying, setPlaying] = useState(false);
-  const [bars, setBars] = useState([1, 69, 10, 82, 11, 25, 8, 14, 2, 51]);
-  const [inputSize, setInputSize] = useState(10);
-  const [steps, setSteps] = useState([]);
+  const [bars, setBars] = useState({
+    bars: initialArr,
+    comparing: [],
+    swapping: [],
+  });
+  const [inputSize, setInputSize] = useState(initialArr.length);
+  const [steps, setSteps] = useState([]); // steps: array of {bars, comparing, swapping}
   const [currentStep, setCurrentStep] = useState(0);
-  const [speed, setSpeed] = useState(1); // playback speed multiplier (0.25x → 16x)
+  const [speed, setSpeed] = useState(1); // multiplier: 0.25, 0.5, 1, 2, ...
+  const [selectedAlgo, setSelectedAlgo] = useState("selection");
 
   // autoplay effect
   useEffect(() => {
     if (!isPlaying || steps.length === 0) return;
 
-    const interval = 1000 / speed; // base 1x = 1000ms
+    const interval = Math.max(10, Math.round(1000 / speed)); // ms per step
     const id = setInterval(() => {
       setCurrentStep((prev) => {
         if (prev < steps.length - 1) {
           return prev + 1;
         } else {
-          setPlaying(false);
           clearInterval(id);
+          setPlaying(false);
           return prev;
         }
       });
@@ -33,17 +39,23 @@ export default function MainPage() {
     return () => clearInterval(id);
   }, [isPlaying, speed, steps]);
 
-  // update bars with metadata
+  // apply currentStep to bars (the BarsDisplay expects an object with bars/comparing/swapping)
   useEffect(() => {
     if (steps.length > 0 && currentStep < steps.length) {
-      const step = steps[currentStep];
-      setBars(step);
+      setBars(steps[currentStep]);
     }
   }, [currentStep, steps]);
 
+  // whenever algorithm changes, clear steps and stop playback (safe)
+  useEffect(() => {
+    setSteps([]);
+    setCurrentStep(0);
+    setPlaying(false);
+  }, [selectedAlgo]);
+
   return (
     <div className="mainPage">
-      <NavMain />
+      <NavMain selectedAlgo={selectedAlgo} setSelectedAlgo={setSelectedAlgo} />
       <BarsDisplay bars={bars} inputSize={inputSize} />
       <Controler
         bars={bars}
@@ -58,19 +70,7 @@ export default function MainPage() {
         setCurrentStep={setCurrentStep}
         speed={speed}
         setSpeed={setSpeed}
-      />
-      <CodeDisplay
-        code={`function selectionSort(arr) { 
-    for (let i = 0; i < arr.length; i++) {
-      let min = i;
-      for (let j = i+1; j < arr.length; j++) {
-        if (arr[j] < arr[min]) min = j;
-      }
-      [arr[i], arr[min]] = [arr[min], arr[i]];
-    }
-    return arr;
-  }`}
-        language="javascript"
+        selectedAlgo={selectedAlgo}
       />
     </div>
   );

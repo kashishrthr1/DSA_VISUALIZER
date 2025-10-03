@@ -1,48 +1,36 @@
-import DropDown from "./Dropdown";
+import React from "react";
 
-export default function NavMain() {
+export default function NavMain({ selectedAlgo, setSelectedAlgo }) {
   return (
     <nav className="w-full bg-[#121218] flex items-center px-4 sm:px-6 md:px-8 h-16 sm:h-20">
-      {/* Left side - Logo */}
       <div className="text-white font-['IBM_Plex_Mono'] text-lg sm:text-xl md:text-2xl lg:text-[29px] border-r border-white pr-4 sm:pr-6 md:pr-8">
         Dsa Visualizer
       </div>
 
-      {/* Middle menu */}
       <div className="hidden md:flex items-center space-x-4 sm:space-x-8 lg:space-x-12 ml-4 sm:ml-8 md:ml-12 text-white font-['IBM_Plex_Mono'] text-sm sm:text-lg md:text-xl lg:text-[23px]">
-        {/* Sorting */}
-        <DropDown />
+        <span>Sorting</span>
 
-        {/* Select Algorithm */}
-        <div className="flex items-center space-x-2 cursor-pointer">
-          <span>Select Algorithm</span>
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
+        <div className="flex items-center space-x-2">
+          <span>Select Algorithm:</span>
+          <select
+            value={selectedAlgo}
+            onChange={(e) => setSelectedAlgo(e.target.value)}
+            className="bg-[#121218] border border-white rounded px-2 py-1 text-white"
           >
-            <path
-              d="M19 9L12 16L5 9"
-              stroke="white"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+            <option value="selection">Selection Sort</option>
+            <option value="bubble">Bubble Sort</option>
+            <option value="insertion">Insertion Sort</option>
+          </select>
         </div>
 
-        {/* Comparison Mode */}
         <span>Comparison Mode</span>
       </div>
 
-      {/* Right side - Dark Mode */}
-      <div className="ml-auto cursor-pointer">
+      <div className="ml-auto cursor-pointer p-2">
+        {/* placeholder icon */}
         <svg
           width="32"
           height="32"
-          className="sm:w-8 sm:h-8 md:w-[40px] md:h-[40px] lg:w-[45px] lg:h-[44px]"
           viewBox="0 0 45 44"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
