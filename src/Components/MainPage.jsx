@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Controler from "./Controler";
 import NavMain from "./NavMain";
 import BarsDisplay from "./BarsDisplay";
+import CodeDisplay from "./CodeDisplay";
 import "../App.css";
 
 export default function MainPage() {
@@ -57,6 +58,19 @@ export default function MainPage() {
         setCurrentStep={setCurrentStep}
         speed={speed}
         setSpeed={setSpeed}
+      />
+      <CodeDisplay
+        code={`function selectionSort(arr) { 
+    for (let i = 0; i < arr.length; i++) {
+      let min = i;
+      for (let j = i+1; j < arr.length; j++) {
+        if (arr[j] < arr[min]) min = j;
+      }
+      [arr[i], arr[min]] = [arr[min], arr[i]];
+    }
+    return arr;
+  }`}
+        language="javascript"
       />
     </div>
   );
