@@ -1,34 +1,43 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
-export default function DropDown({ onSelect }) {
+export default function DropDown({ options, selected: selectedProp, onSelect, placeholder }) {
   const [isOpen, setIsOpen] = useState(false);
-   const [selected, setSelected] = useState("Sorting");
+  const [selected, setSelected] = useState(placeholder || "Select");
+  const dropdownRef = useRef(null);
 
-  const algorithms = [
-    { id: "bubble", name: "Bubble Sort" },
-    { id: "selection", name: "Selection Sort" },
-    { id: "insertion", name: "Insertion Sort" },
-    { id: "merge", name: "Merge Sort" },
-    { id: "quick", name: "Quick Sort" },
-  ];
+  // Sync with parent prop (handles reset like "Select Algorithm")
+  useEffect(() => {
+    setSelected(selectedProp || placeholder || "Select");
+  }, [selectedProp, placeholder]);
+
+  // Close dropdown when clicked outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
-    <div className="relative inline-block text-left">
+    <div ref={dropdownRef} className="relative inline-block text-left">
       {/* Dropdown Header */}
       <div
-        className="flex items-center justify-between space-x-2 cursor-pointer px-3 py-2 rounded-md hover:bg-gray-700 w-62"
-        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center justify-between cursor-pointer px-3 py-2 rounded-md hover:bg-gray-700 min-w-[200px] max-w-[280px]"
+        onClick={() => setIsOpen((prev) => !prev)}
       >
-        <span className="truncate">{selected}</span>
+        <span className="truncate text-white select-none">
+          {selected}
+        </span>
         <svg
           width="20"
           height="20"
           viewBox="0 0 24 24"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className={`transform transition-transform duration-200 ${
-            isOpen ? "rotate-180" : "rotate-0"
-          }`}
+          className={`transform transition-transform duration-200 ${isOpen ? "rotate-180" : "rotate-0"}`}
         >
           <path
             d="M19 9L12 16L5 9"
@@ -42,20 +51,27 @@ export default function DropDown({ onSelect }) {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute mt-2 w-40 bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-10">
-          {algorithms.map((algo) => (
-            <div
-              key={algo.id}
-              className="px-4 py-2 text-white text-sm hover:bg-gray-600 cursor-pointer"
-              onClick={() => {
-                setSelected(algo.name);
-                onSelect(algo.id); // trigger selection function
-                setIsOpen(false); // close dropdown
-              }}
-            >
-              {algo.name}
+        <div className="absolute mt-2 min-w-[200px] max-w-[280px] bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-10">
+          {options.length > 0 ? (
+            options.map((option, idx) => (
+              <div
+                key={option.id || idx}
+                className="px-4 py-2 text-white text-sm hover:bg-gray-600 cursor-pointer truncate"
+                onClick={() => {
+                  const value = option.name || option;
+                  setSelected(value);
+                  onSelect(value);
+                  setIsOpen(false);
+                }}
+              >
+                {option.name || option}
+              </div>
+            ))
+          ) : (
+            <div className="px-4 py-2 text-gray-400 text-sm">
+              No options available
             </div>
-          ))}
+          )}
         </div>
       )}
     </div>

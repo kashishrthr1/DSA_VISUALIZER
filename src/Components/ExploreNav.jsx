@@ -1,12 +1,11 @@
 
-export default function Navbar() {
-  
+export default function ExploreNav() {
   return (
-    <nav className="w-full bg-black px-4 py-3 flex items-center justify-between overflow-hidden">
+    <nav className="w-full bg-black px-4 py-3 flex items-center justify-between">
       {/* Left: Logo + Title */}
       <div className="flex items-center space-x-3 min-w-0">
         {/* Logo */}
-        <div className="w-10 h-10 bg-gray-300 flex items-center justify-center flex-shrink-0">
+        <div className="w-10 h-10 bg-gray-300 flex items-center justify-center flex-shrink-0 rounded">
           <span className="font-bold text-sm sm:text-base">Logo</span>
         </div>
 
@@ -16,14 +15,11 @@ export default function Navbar() {
         </span>
       </div>
 
-      {/* Right: Explore More + Dark Mode */}
-      <div className="flex items-center space-x-10">
-        {/* Explore More */}
-        <div className="text-white text-sm sm:text-base md:text-lg font-mono cursor-pointer hover:text-gray-300 transition" >
-          <a href="/ExploreMore" className="text-white cursor-pointer">
-           Explore More
-          </a>
-        </div>
+      {/* Right: Nav Links + Dark Mode */}
+      <div className="flex items-center space-x-6 text-white font-mono text-sm md:text-base">
+        <a href="/">Home</a>
+        <a href="#" >Algorithms</a>
+        <a href="#" >Comparison Mode</a>
 
         {/* Dark Mode Button */}
         <button className="text-white text-2xl sm:text-3xl flex-shrink-0">
