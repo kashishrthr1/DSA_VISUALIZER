@@ -4,6 +4,10 @@ import generateArray from "../utils/generateArray.js";
 import { selectionSort } from "../algorithms/selectionSort.js";
 import { bubbleSort } from "../algorithms/bubbleSort.js";
 import { insertionSort } from "../algorithms/insertionSort.js";
+import { quickSort } from "../algorithms/quickSort.js";
+import { mergeSort } from "../algorithms/mergeSort.js";
+import { heapSort } from "../algorithms/heapSort.js";
+import { radixSort } from "../algorithms/radixSort.js";
 
 export default function Controler({
   bars,
@@ -32,6 +36,10 @@ export default function Controler({
     if (selectedAlgo === "selection") return selectionSort(arr);
     if (selectedAlgo === "bubble") return bubbleSort(arr);
     if (selectedAlgo === "insertion") return insertionSort(arr);
+    if (selectedAlgo === "quick") return quickSort(arr);
+    if (selectedAlgo === "merge") return mergeSort(arr);
+    if (selectedAlgo === "heap") return heapSort(arr);
+    if (selectedAlgo === "radix") return radixSort(arr);
     return [];
   };
 

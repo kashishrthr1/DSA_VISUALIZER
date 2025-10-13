@@ -1,7 +1,7 @@
 import React from "react";
 import "../App.css";
 
-function BarsDisplay({ bars, inputSize }) {
+function BarsDisplay({ bars, inputSize, currenStep, lastStep }) {
   // Normalize bars prop: accept either array OR {bars, comparing, swapping}
   let arr = [];
   let comparing = [];
@@ -33,8 +33,10 @@ function BarsDisplay({ bars, inputSize }) {
       }}
     >
       {arr.map((value, index) => {
-        let color = "lightblue";
-        if (swapping.includes(index)) color = "#ff6b6b"; // red for swapping
+        let color = "white";
+        if (currenStep === lastStep) color = "#22C55E";
+        else if (swapping.includes(index))
+          color = "#ff6b6b"; // red for swapping
         else if (comparing.includes(index)) color = "#ffb86b"; // orange for comparing
 
         return (
@@ -53,9 +55,10 @@ function BarsDisplay({ bars, inputSize }) {
               fontSize: "12px",
               paddingBottom: "6px",
               boxSizing: "border-box",
+              border: "2px solid black",
             }}
           >
-            {value}
+            <b>{value}</b>
           </div>
         );
       })}

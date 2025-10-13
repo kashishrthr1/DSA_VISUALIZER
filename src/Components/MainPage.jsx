@@ -2,6 +2,20 @@ import React, { useState, useEffect } from "react";
 import Controler from "./Controler";
 import NavMain from "./NavMain";
 import BarsDisplay from "./BarsDisplay";
+import CodeDisplay from "./CodeDisplay";
+import {
+  selectionSort,
+  selectionSortCode,
+} from "../algorithms/selectionSort.js";
+import { bubbleSort, bubbleSortCode } from "../algorithms/bubbleSort.js";
+import {
+  insertionSort,
+  insertionSortCode,
+} from "../algorithms/insertionSort.js";
+import { quickSort, quickSortCode } from "../algorithms/quickSort.js";
+import { mergeSort, mergeSortCode } from "../algorithms/mergeSort.js";
+import { heapSort, heapSortCode } from "../algorithms/heapSort.js";
+import { radixSort, radixSortCode } from "../algorithms/radixSort.js";
 import "../App.css";
 
 export default function MainPage() {
@@ -14,49 +28,72 @@ export default function MainPage() {
     swapping: [],
   });
   const [inputSize, setInputSize] = useState(initialArr.length);
-  const [steps, setSteps] = useState([]); // steps: array of {bars, comparing, swapping}
+  const [steps, setSteps] = useState([]);
   const [currentStep, setCurrentStep] = useState(0);
-  const [speed, setSpeed] = useState(1); // multiplier: 0.25, 0.5, 1, 2, ...
+  const [speed, setSpeed] = useState(1);
   const [selectedAlgo, setSelectedAlgo] = useState("selection");
 
-  // autoplay effect
+  const algoCodes = {
+    selection: selectionSortCode,
+    bubble: bubbleSortCode,
+    insertion: insertionSortCode,
+    quick: quickSortCode,
+    merge: mergeSortCode,
+    heap: heapSortCode,
+    radix: radixSortCode,
+  };
+
   useEffect(() => {
     if (!isPlaying || steps.length === 0) return;
 
-    const interval = Math.max(10, Math.round(1000 / speed)); // ms per step
+    const interval = Math.max(10, Math.round(1000 / speed));
     const id = setInterval(() => {
       setCurrentStep((prev) => {
-        if (prev < steps.length - 1) {
-          return prev + 1;
-        } else {
-          clearInterval(id);
-          setPlaying(false);
-          return prev;
-        }
+        if (prev < steps.length - 1) return prev + 1;
+        clearInterval(id);
+        setPlaying(false);
+        return prev;
       });
     }, interval);
 
     return () => clearInterval(id);
   }, [isPlaying, speed, steps]);
 
-  // apply currentStep to bars (the BarsDisplay expects an object with bars/comparing/swapping)
   useEffect(() => {
     if (steps.length > 0 && currentStep < steps.length) {
       setBars(steps[currentStep]);
     }
   }, [currentStep, steps]);
 
-  // whenever algorithm changes, clear steps and stop playback (safe)
   useEffect(() => {
     setSteps([]);
     setCurrentStep(0);
     setPlaying(false);
   }, [selectedAlgo]);
 
+  const currentLine = steps[currentStep]?.line || 0;
+
   return (
-    <div className="mainPage">
+    <div
+      className="mainPage"
+      style={{ display: "flex", flexDirection: "column" }}
+    >
       <NavMain selectedAlgo={selectedAlgo} setSelectedAlgo={setSelectedAlgo} />
-      <BarsDisplay bars={bars} inputSize={inputSize} />
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          padding: "0 24px",
+        }}
+      >
+        <BarsDisplay
+          bars={bars}
+          inputSize={inputSize}
+          currenStep={currentStep}
+          lastStep={steps.length - 1}
+        />
+        <CodeDisplay code={algoCodes[selectedAlgo]} currentLine={currentLine} />
+      </div>
       <Controler
         bars={bars}
         setBars={setBars}
