@@ -3,22 +3,71 @@ import { useLocation } from "react-router-dom";
 import Controler from "./Controler";
 import NavMain from "./NavMain";
 import ColorLegend from "./ColorLegend";
+import BarsDisplay from "./BarsDisplay"; // New component
+import CodeDisplay from "./CodeDisplay"; // New component
+
+// Import all visualization code and external CSS dependencies
+import { selectionSortCode } from "../algorithms/selectionSort.js";
+import { bubbleSortCode } from "../algorithms/bubbleSort.js";
+import { insertionSortCode } from "../algorithms/insertionSort.js";
+import { quickSortCode } from "../algorithms/quickSort.js";
+import { mergeSortCode } from "../algorithms/mergeSort.js";
+import { heapSortCode } from "../algorithms/heapSort.js";
+import { radixSortCode } from "../algorithms/radixSort.js";
+import "../App.css";
+
+// Helper map to convert NavMain's full names to Controler's keys for code display
+const algoCodeKeyMap = {
+  "Selection Sort": "selection",
+  "Bubble Sort": "bubble",
+  "Insertion Sort": "insertion",
+  "Quick Sort": "quick",
+  "Merge Sort": "merge",
+  "Heap Sort": "heap", // Assuming 'Heapify' from Tree category maps to Heap Sort
+  "Radix Sort": "radix", // Assuming 'Heapify' from Tree category maps to Heap Sort
+};
+
+const algoCodes = {
+  selection: selectionSortCode,
+  bubble: bubbleSortCode,
+  insertion: insertionSortCode,
+  quick: quickSortCode,
+  merge: mergeSortCode,
+  heap: heapSortCode,
+  radix: radixSortCode,
+  default: `// Select a sorting algorithm to view its visualization and code!`,
+};
 
 export default function MainPage() {
-  const location = useLocation();
+  const initialArr = [1, 69, 10, 82, 11, 25, 8, 14, 2, 51];
 
-  // Dropdown states
+  // --- State from Main (Dropdowns) ---
+  const location = useLocation();
   const [selectedAlgorithm, setSelectedAlgorithm] =
     useState("Select Algorithm");
   const [selectedType, setSelectedType] = useState("Select Type");
 
-  // Update dropdowns when navigated from a card
+  // --- State from Incoming (Visualization) ---
+  const [isPlaying, setPlaying] = useState(false);
+  const [bars, setBars] = useState({
+    bars: initialArr,
+    comparing: [],
+    swapping: [],
+  });
+  const [inputSize, setInputSize] = useState(initialArr.length);
+  const [steps, setSteps] = useState([]);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [speed, setSpeed] = useState(1);
+
+  // Determine the key for the current algorithm
+  const selectedAlgorithmKey = algoCodeKeyMap[selectedAlgorithm] || null;
+
+  // Effect 1: Handle navigation from ExplorePage (from Main)
   useEffect(() => {
     if (location.state?.selectedTitle) {
       const algoTitle = location.state.selectedTitle;
       setSelectedAlgorithm(algoTitle);
 
-      // Detect algorithm category automatically
       if (algoTitle.toLowerCase().includes("sort")) setSelectedType("Sorting");
       else if (algoTitle.toLowerCase().includes("search"))
         setSelectedType("Searching");
@@ -32,23 +81,95 @@ export default function MainPage() {
     }
   }, [location.state]);
 
+  // Effect 2: Playback interval (from Incoming)
+  useEffect(() => {
+    if (!selectedAlgorithmKey || !isPlaying || steps.length === 0) return;
+
+    const interval = Math.max(10, Math.round(1000 / speed));
+    const id = setInterval(() => {
+      setCurrentStep((prev) => {
+        if (prev < steps.length - 1) return prev + 1;
+        clearInterval(id);
+        setPlaying(false);
+        return prev;
+      });
+    }, interval);
+
+    return () => clearInterval(id);
+  }, [isPlaying, speed, steps, selectedAlgorithmKey]);
+
+  // Effect 3: Update bars on step change (from Incoming)
+  useEffect(() => {
+    if (steps.length > 0 && currentStep < steps.length) {
+      setBars(steps[currentStep]);
+    }
+  }, [currentStep, steps]);
+
+  // Effect 4: Reset steps when selected algorithm changes (from Incoming)
+  useEffect(() => {
+    setSteps([]);
+    setCurrentStep(0);
+    setPlaying(false);
+    // Reset bars when algo changes (or if it changes to 'Select Algorithm')
+    setBars({ bars: initialArr, comparing: [], swapping: [] });
+  }, [selectedAlgorithmKey]);
+
+  const currentLine = steps[currentStep]?.line || 0;
+  const codeToDisplay = algoCodes[selectedAlgorithmKey] || algoCodes.default;
+
   return (
-    <div className="">
-      {/* Navbar with both dropdowns */}
+    <div className="flex flex-col min-h-screen">
+      {/* 1. Navbar (Main structure retained) */}
       <NavMain
         selectedAlgorithm={selectedAlgorithm}
         onSelectAlgorithm={setSelectedAlgorithm}
         selectedType={selectedType}
         onSelectType={setSelectedType}
       />
-      <div className="absolute left-6 top-[100px]">
-        <ColorLegend />
+
+      <div className="flex-grow flex flex-col p-4 pt-8">
+        {/* 2. Horizontal Display Row: ColorLegend, BarsDisplay, CodeDisplay */}
+        <div className="flex justify-start items-start w-full gap-4 max-h-[450px]">
+          {/* Color Legend (Fixed width) */}
+          <div className="w-[200px]">
+            <ColorLegend />
+          </div>
+
+          {/* Bars Display (Expands to fill space) */}
+          <div className="flex-1 min-w-0">
+            <BarsDisplay
+              bars={bars}
+              inputSize={inputSize}
+              currenStep={currentStep}
+              lastStep={steps.length - 1}
+            />
+          </div>
+
+          {/* Code Display (Fixed width) */}
+          <div className="w-1/4 min-w-[300px]">
+            <CodeDisplay code={codeToDisplay} currentLine={currentLine} />
+          </div>
+        </div>
+
+        {/* 3. Controler (Below the horizontal row, centered) */}
+        <div className="flex justify-center mt-auto py-4">
+          <Controler
+            bars={bars}
+            setBars={setBars}
+            inputSize={inputSize}
+            setInputSize={setInputSize}
+            isPlaying={isPlaying}
+            setPlaying={setPlaying}
+            steps={steps}
+            setSteps={setSteps}
+            currentStep={currentStep}
+            setCurrentStep={setCurrentStep}
+            speed={speed}
+            setSpeed={setSpeed}
+            selectedAlgorithm={selectedAlgorithm} // Full name to Controler
+          />
+        </div>
       </div>
-      {/* Visualizer / Control section */}
-      <Controler
-        selectedAlgorithm={selectedAlgorithm}
-        selectedType={selectedType}
-      />
     </div>
   );
 }
