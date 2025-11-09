@@ -1,4 +1,4 @@
-import React from "react";
+import React from "react"; 
 import { Light as SyntaxHighlighter } from "react-syntax-highlighter";
 import js from "react-syntax-highlighter/dist/esm/languages/hljs/javascript";
 import { atomOneDark } from "react-syntax-highlighter/dist/esm/styles/hljs";
@@ -6,7 +6,7 @@ import { atomOneDark } from "react-syntax-highlighter/dist/esm/styles/hljs";
 SyntaxHighlighter.registerLanguage("javascript", js);
 
 export default function CodeDisplay({ code, currentLine }) {
-  const lines = code.split("\n");
+  //const lines = code.split("\n");
 
   return (
     <div
@@ -28,7 +28,7 @@ export default function CodeDisplay({ code, currentLine }) {
         customStyle={{ background: "transparent", padding: 0, margin: 0 }}
         showLineNumbers
         wrapLines
-        lineProps={(lineNumber) => {
+        lineProps={({ lineNumber }) => {
           const style = {
             display: "block",
             background:

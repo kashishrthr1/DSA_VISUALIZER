@@ -1,3 +1,7 @@
+
+// Removed: import "../App.css"; // External CSS files are not supported in single-file components
+
+// This component is strictly for the Sorting visualization (Bar representation)
 import React from "react";
 import "../App.css";
 
@@ -64,6 +68,8 @@ function BarsDisplay({ bars, inputSize, currenStep, lastStep }) {
       })}
     </div>
   );
+
+
 }
 
 export default BarsDisplay;
