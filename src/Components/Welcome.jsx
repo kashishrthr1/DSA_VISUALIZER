@@ -1,6 +1,11 @@
-
+import { useNavigate } from "react-router-dom";
 
 export default function Welcome() {
+  const navigate=useNavigate();
+  const handleClick = () => {
+  navigate("/ExploreMore");
+};
+
   return (
     <section className="w-full max-w-[1193px] mx-[125.25px] mt-[100px] font-['IBM_Plex_Mono'] text-left">
       {/* Title */}
@@ -20,7 +25,7 @@ export default function Welcome() {
 
       {/* Buttons */}
       <div className="flex gap-6 mt-10">
-        <button className="w-[161.25px] h-[61.5px] rounded-[18.75px] border border-black bg-white flex items-center justify-center hover:bg-gray-100 transition">
+        <button className="w-[161.25px] h-[61.5px] rounded-[18.75px] border border-black bg-white flex items-center justify-center hover:bg-gray-100 transition" onClick={handleClick}>
           Get Started
         </button>
         <button className="w-[161.25px] h-[61.5px] rounded-[18.75px] border border-black bg-white flex items-center justify-center hover:bg-gray-100 transition">

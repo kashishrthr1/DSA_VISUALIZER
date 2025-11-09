@@ -6,7 +6,6 @@ export default function ColorLegend() {
   ];
 
   return (
-    // Removed absolute position classes
     <div className="w-full border border-black rounded-xl p-4 bg-white shadow-md">
       <h3 className="text-[16px] font-semibold mb-3 font-['IBM_Plex_Mono']">
         Color Legend

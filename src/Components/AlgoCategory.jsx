@@ -1,4 +1,4 @@
-export default function AlgoCategory() {
+export default function AlgoCategory({ selectedCategory, setSelectedCategory }) {
   const categories = [
     "All",
     "Sorting",
@@ -9,15 +9,14 @@ export default function AlgoCategory() {
     "Other",
   ];
 
-  const active = "Sorting"; // active category
-
   return (
     <div className="w-full border border-black rounded-xl p-4 flex flex-col gap-3">
       {categories.map((cat) => (
         <button
           key={cat}
+          onClick={() => setSelectedCategory(cat)} // 👈 handles click
           className={`w-full py-3 rounded-xl border border-black font-mono text-lg text-center transition-colors ${
-            cat === active
+            cat === selectedCategory
               ? "bg-black text-white"
               : "text-gray-600 hover:bg-gray-100"
           }`}
