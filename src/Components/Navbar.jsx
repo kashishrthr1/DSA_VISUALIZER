@@ -1,28 +1,29 @@
+import { useNavigate } from "react-router-dom";
 
+import logo from "../assets/logo2.svg";
 export default function Navbar() {
-  
+  const navigate = useNavigate();
+  const handleClick = () => {
+    navigate("/");
+  };
   return (
     <nav className="w-full bg-black px-4 py-3 flex items-center justify-between overflow-hidden">
       {/* Left: Logo + Title */}
-      <div className="flex items-center space-x-3 min-w-0">
-        {/* Logo */}
-        <div className="w-10 h-10 bg-gray-300 flex items-center justify-center flex-shrink-0">
-          <span className="font-bold text-sm sm:text-base">Logo</span>
-        </div>
-
-        {/* Title */}
-        <span className="text-white text-sm sm:text-base md:text-lg lg:text-xl font-mono truncate max-w-[120px] sm:max-w-[200px] md:max-w-[300px]">
-          DSA Visualizer
+      <a
+        href="/"
+        className="flex items-center space-x-3 min-w-0 cursor-pointer"
+      >
+        <img src={logo} alt="logo" className="w-20 h-auto" />
+        <span className="text-white text-base sm:text-lg md:text-xl lg:text-4xl ml-4 font-mono truncate max-w-[120px] sm:max-w-[200px] md:max-w-[300px]">
+          Code Motion
         </span>
-      </div>
+      </a>
 
       {/* Right: Explore More + Dark Mode */}
       <div className="flex items-center space-x-10">
         {/* Explore More */}
-        <div className="text-white text-sm sm:text-base md:text-lg font-mono cursor-pointer hover:text-gray-300 transition" >
-          <a href="/ExploreMore" className="text-white cursor-pointer">
-           Explore More
-          </a>
+        <div className="text-white text-sm sm:text-base md:text-lg font-mono cursor-pointer hover:text-black hover:bg-white transition-colors duration-300 px-4 py-2 rounded">
+          <a href="/ExploreMore">Explore More</a>
         </div>
 
         {/* Dark Mode Button */}
