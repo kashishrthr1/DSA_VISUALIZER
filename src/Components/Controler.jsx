@@ -15,7 +15,7 @@ const algoKeyMap = {
   "Insertion Sort": "insertion",
   "Quick Sort": "quick",
   "Merge Sort": "merge",
-  Heapify: "heap", // Assuming "Heapify" maps to "Heap Sort"
+  "Heap Sort": "heap", // Assuming "Heapify" maps to "Heap Sort"
   "Radix Sort": "radix",
 };
 
