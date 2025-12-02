@@ -1,5 +1,6 @@
 import "../App.css";
 import generateArray from "../utils/generateArray.js";
+// --- SORTING ALGORITHM IMPORTS ---
 import { selectionSort } from "../algorithms/selectionSort.js";
 import { bubbleSort } from "../algorithms/bubbleSort.js";
 import { insertionSort } from "../algorithms/insertionSort.js";
@@ -7,6 +8,11 @@ import { quickSort } from "../algorithms/quickSort.js";
 import { mergeSort } from "../algorithms/mergeSort.js";
 import { heapSort } from "../algorithms/heapSort.js";
 import { radixSort } from "../algorithms/radixSort.js";
+// --- SEARCHING ALGORITHM IMPORTS (NEW) ---
+import { linearSearch } from "../algorithms/linearSearch.js";
+import { binarySearch } from "../algorithms/binarySearch.js";
+
+import { useState, useEffect } from "react";
 
 // Helper map to convert NavMain's full names to Controler's keys
 const algoKeyMap = {
@@ -15,8 +21,10 @@ const algoKeyMap = {
   "Insertion Sort": "insertion",
   "Quick Sort": "quick",
   "Merge Sort": "merge",
-  "Heap Sort": "heap", // Assuming "Heapify" maps to "Heap Sort"
-  "Radix Sort": "radix",
+  "Heap Sort": "heap",
+  "Radix Sort": "radix", // ADDED SEARCH ALGORITHMS
+  "Linear Search": "linear",
+  "Binary Search": "binary",
 };
 
 export default function Controler({
@@ -32,36 +40,83 @@ export default function Controler({
   setCurrentStep,
   speed,
   setSpeed,
-  selectedAlgorithm, // Full name from MainPage state
+  selectedAlgorithm, // Full name from MainPage state // NEW PROPS FOR SEARCHING
+  targetValue,
+  setTargetValue,
 }) {
   const speedOptions = [0.25, 0.5, 1, 2, 4, 8, 16];
   const selectedAlgoKey = algoKeyMap[selectedAlgorithm] || null;
+  const isSearching = ["linear", "binary"].includes(selectedAlgoKey); // --- NEW LOCAL STATE FOR USER INPUT --- // Used to manage the text input fields
 
   const getRawArray = () => {
     if (Array.isArray(bars)) return bars;
     if (bars && Array.isArray(bars.bars)) return bars.bars;
     return [];
   };
+  const [userInputArray, setUserInputArray] = useState(
+    getRawArray().join(", ")
+  );
+  const [userInputTarget, setUserInputTarget] = useState(String(targetValue)); // Effect to keep local array input synced when the main array changes
 
-  const buildStepsForSelectedAlgo = (arr) => {
+  useEffect(() => {
+    // Only update local input if not currently typing, or if array structure changes significantly
+    if (steps.length === 0) {
+      setUserInputArray(getRawArray().join(", "));
+    }
+  }, [bars, inputSize]); // Effect to keep local target input synced when main target changes
+
+  useEffect(() => {
+    setUserInputTarget(String(targetValue));
+  }, [targetValue]); // ------------------------------------ // --- CORE LOGIC: Determines which algorithm function to call ---
+  const buildStepsForSelectedAlgo = (arr, target) => {
+    // SORTING ALGORITHMS
     if (selectedAlgoKey === "selection") return selectionSort(arr);
     if (selectedAlgoKey === "bubble") return bubbleSort(arr);
     if (selectedAlgoKey === "insertion") return insertionSort(arr);
     if (selectedAlgoKey === "quick") return quickSort(arr);
     if (selectedAlgoKey === "merge") return mergeSort(arr);
     if (selectedAlgoKey === "heap") return heapSort(arr);
-    if (selectedAlgoKey === "radix") return radixSort(arr);
+    if (selectedAlgoKey === "radix") return radixSort(arr); // SEARCHING ALGORITHMS
+    if (selectedAlgoKey === "linear") return linearSearch(arr, target);
+    if (selectedAlgoKey === "binary") return binarySearch(arr, target);
     return [];
+  }; // --- HANDLERS --- // 1. Custom Generate Handler for all array changes (replaces old Generate button logic)
+
+  const handleGenerate = (useRandom = false) => {
+    let newRawArray;
+    let newTargetValue = Number(userInputTarget);
+
+    if (isSearching) {
+      // For Searching: Use user input array
+      newRawArray = userInputArray
+        .split(",")
+        .map((s) => Number(s.trim()))
+        .filter((n) => !isNaN(n) && n !== null); // Set input size based on parsed array
+      setInputSize(newRawArray.length);
+    } else if (useRandom) {
+      // For Sorting (and Random button click): Generate array
+      newRawArray = generateArray(inputSize);
+      setUserInputArray(newRawArray.join(", ")); // Sync local input field
+    } else {
+      // Fallback for sorting: use the current array
+      newRawArray = getRawArray();
+    } // Update MainPage state
+
+    setBars({ bars: newRawArray, comparing: [], swapping: [], found: [] });
+    setTargetValue(newTargetValue); // Update target in MainPage state // Reset visualization
+
+    setSteps([]);
+    setCurrentStep(0);
+    setPlaying(false);
   };
 
   const handlePlayPause = () => {
     // Prevent play if no visualization algorithm is selected
-    if (!selectedAlgoKey) return;
+    if (!selectedAlgoKey) return; // If steps haven't been generated or we are at the end, generate and start
 
-    // If steps haven't been generated or we are at the end, generate and start
     if (steps.length === 0 || currentStep === steps.length - 1) {
-      const raw = getRawArray();
-      const recordSteps = buildStepsForSelectedAlgo(raw);
+      const raw = getRawArray(); // PASS TARGET VALUE TO STEP BUILDER
+      const recordSteps = buildStepsForSelectedAlgo(raw, targetValue);
 
       if (recordSteps.length === 0) {
         setSteps([{ bars: [...raw], comparing: [], swapping: [] }]);
@@ -72,9 +127,8 @@ export default function Controler({
       setCurrentStep(0);
       setPlaying(true);
       return;
-    }
+    } // Toggle play/pause
 
-    // Toggle play/pause
     setPlaying((prev) => !prev);
   };
 
@@ -95,12 +149,11 @@ export default function Controler({
   };
 
   return (
-    <div className="w-[800px] h-[84px] bg-[rgba(18,18,24,0.75)] rounded-[36px] flex items-center px-6 space-x-6">
-      {/* --- Left Icons --- */}
+    <div className="w-[1100px] h-[90px] bg-[rgba(18,18,24,0.85)] backdrop-blur-md rounded-3xl flex items-center px-8 space-x-8 border border-white/10 shadow-lg">
+      {/* --- Playback Controls --- */}
       <div className="flex items-center space-x-4 text-white">
-        {/* Play/Pause */}
         <button
-          className="w-10 h-10 flex items-center justify-center"
+          className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-xl transition"
           onClick={handlePlayPause}
           disabled={!selectedAlgoKey}
         >
@@ -115,9 +168,8 @@ export default function Controler({
           )}
         </button>
 
-        {/* Replay */}
         <button
-          className="w-9 h-9 flex items-center justify-center"
+          className="w-9 h-9 flex items-center justify-center hover:bg-white/10 rounded-xl transition"
           onClick={handleReplay}
           disabled={steps.length === 0}
         >
@@ -126,9 +178,8 @@ export default function Controler({
           </svg>
         </button>
 
-        {/* Skip Backward */}
         <button
-          className="w-9 h-9 flex items-center justify-center"
+          className="w-9 h-9 flex items-center justify-center hover:bg-white/10 rounded-xl transition"
           onClick={handleSkipBackward}
           disabled={currentStep === 0}
         >
@@ -137,9 +188,8 @@ export default function Controler({
           </svg>
         </button>
 
-        {/* Skip Forward */}
         <button
-          className="w-9 h-9 flex items-center justify-center"
+          className="w-9 h-9 flex items-center justify-center hover:bg-white/10 rounded-xl transition"
           onClick={handleSkipForward}
           disabled={currentStep === steps.length - 1}
         >
@@ -149,9 +199,9 @@ export default function Controler({
         </button>
       </div>
 
-      {/* --- Speed & Slider --- */}
-      <div className="flex items-center space-x-2 text-white flex-1">
-        <span className="text-[16px] font-['IBM Plex Mono']">{speed}x</span>
+      {/* --- Speed Slider --- */}
+      <div className="flex items-center space-x-3 text-white flex-1">
+        <span className="text-[16px] font-mono">{speed}x</span>
         <input
           type="range"
           min="0"
@@ -159,34 +209,57 @@ export default function Controler({
           step="1"
           value={speedOptions.indexOf(speed)}
           onChange={(e) => setSpeed(speedOptions[Number(e.target.value)])}
-          className="w-[200px] accent-white"
+          className="w-[220px] accent-white cursor-pointer"
         />
+      </div>
+
+      {/* --- Inputs --- */}
+      <div className="flex items-center space-x-6 text-white font-mono">
+        {/* Array Input */}
+        <div className="flex flex-col text-[13px]">
+          <label className="opacity-80">Array</label>
+          <input
+            type="text"
+            value={userInputArray}
+            onChange={(e) => setUserInputArray(e.target.value)}
+            className="w-[220px] px-2 py-1 text-center bg-white text-black rounded-lg shadow-sm mt-1"
+          />
+        </div>
+
+        {/* Target Input (Searching Only) */}
+        {isSearching && (
+          <div className="flex flex-col text-[13px]">
+            <label className="opacity-80">Target</label>
+            <input
+              type="number"
+              value={userInputTarget}
+              onChange={(e) => setUserInputTarget(e.target.value)}
+              className="w-[100px] px-2 py-1 text-center bg-white text-black rounded-lg shadow-sm mt-1"
+            />
+          </div>
+        )}
+
+        {/* Random Size Input (Sorting Only) */}
+        {!isSearching && (
+          <div className="flex flex-col text-[13px]">
+            <label className="opacity-80">n (size)</label>
+            <input
+              type="number"
+              value={inputSize}
+              onChange={(e) => setInputSize(Number(e.target.value))}
+              className="w-[120px] px-2 py-1 text-center bg-white text-black rounded-lg shadow-sm mt-1"
+            />
+          </div>
+        )}
       </div>
 
       {/* --- Generate Button --- */}
       <button
-        className="px-6 py-2 bg-[#121218] border-2 border-white text-white rounded-full font-['IBM_Plex_Mono']  text-[16px]"
-        onClick={() => {
-          const array = generateArray(inputSize);
-          setBars({ bars: array, comparing: [], swapping: [] });
-          setSteps([]);
-          setCurrentStep(0);
-          setPlaying(false);
-        }}
+        className="px-6 py-2 bg-[#1b1b25] border border-white/20 text-white rounded-full font-mono text-[15px] hover:bg-white/10 transition shadow-md"
+        onClick={() => handleGenerate(!isSearching)}
       >
         Generate
       </button>
-
-      {/* --- n = Input --- */}
-      <div className="flex items-center space-x-2 text-white font-['IBM_Plex_Mono'] ">
-        <span>n =</span>
-        <input
-          type="number"
-          value={inputSize}
-          className="w-[60px] h-[30px] text-center text-black rounded bg-white"
-          onChange={(e) => setInputSize(Number(e.target.value))}
-        />
-      </div>
     </div>
   );
 }

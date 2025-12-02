@@ -4,7 +4,8 @@ import Controler from "./Controler";
 import NavMain from "./NavMain";
 import ColorLegend from "./ColorLegend";
 import BarsDisplay from "./BarsDisplay"; // New component
-import CodeDisplay from "./CodeDisplay"; // New component
+import CodeDisplay from "./CodeDisplay";
+import SearchDisplay from "./SearchDisplay.jsx"; // New component
 
 // Import all visualization code and external CSS dependencies
 import { selectionSortCode } from "../algorithms/selectionSort.js";
@@ -15,6 +16,8 @@ import { mergeSortCode } from "../algorithms/mergeSort.js";
 import { heapSortCode } from "../algorithms/heapSort.js";
 import { radixSortCode } from "../algorithms/radixSort.js";
 import "../App.css";
+import { linearSearchCode } from "../algorithms/linearSearch.js";
+import { binarySearchCode } from "../algorithms/binarySearch.js";
 
 // Helper map to convert NavMain's full names to Controler's keys for code display
 const algoCodeKeyMap = {
@@ -24,7 +27,9 @@ const algoCodeKeyMap = {
   "Quick Sort": "quick",
   "Merge Sort": "merge",
   "Heap Sort": "heap", // Assuming 'Heapify' from Tree category maps to Heap Sort
-  "Radix Sort": "radix", // Assuming 'Heapify' from Tree category maps to Heap Sort
+  "Radix Sort": "radix",
+  "Linear Search": "linear",
+  "Binary Search": "binary", // Assuming 'Heapify' from Tree category maps to Heap Sort
 };
 
 const algoCodes = {
@@ -35,6 +40,8 @@ const algoCodes = {
   merge: mergeSortCode,
   heap: heapSortCode,
   radix: radixSortCode,
+  linear: linearSearchCode,
+  binary: binarySearchCode,
   default: `// Select a sorting algorithm to view its visualization and code!`,
 };
 
@@ -58,6 +65,8 @@ export default function MainPage() {
   const [steps, setSteps] = useState([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [speed, setSpeed] = useState(1);
+
+  const [targetValue, setTargetValue] = useState(11);
 
   // Determine the key for the current algorithm
   const selectedAlgorithmKey = algoCodeKeyMap[selectedAlgorithm] || null;
@@ -117,6 +126,9 @@ export default function MainPage() {
   const currentLine = steps[currentStep]?.line || 0;
   const codeToDisplay = algoCodes[selectedAlgorithmKey] || algoCodes.default;
 
+  console.log("Current Line:", currentLine);
+  console.log(steps[0]);
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* 1. Navbar (Main structure retained) */}
@@ -132,18 +144,32 @@ export default function MainPage() {
         <div className="flex justify-start items-start w-full gap-4 max-h-[450px]">
           {/* Color Legend (Fixed width) */}
           <div className="w-[200px]">
-            <ColorLegend />
+            <ColorLegend
+              selectedAlgorithm={selectedAlgorithm}
+              selectedType={selectedType}
+            />
           </div>
 
           {/* Bars Display (Expands to fill space) */}
-          <div className="flex-1 min-w-0">
-            <BarsDisplay
-              bars={bars}
-              inputSize={inputSize}
-              currenStep={currentStep}
-              lastStep={steps.length - 1}
-            />
-          </div>
+          {selectedType === "Sorting" && (
+            <div className="flex-1 min-w-0">
+              <BarsDisplay
+                bars={bars}
+                inputSize={inputSize}
+                currenStep={currentStep}
+                lastStep={steps.length - 1}
+              />
+            </div>
+          )}
+
+          {selectedType === "Searching" && (
+            <div className="flex-1 min-w-0">
+              <SearchDisplay
+                bars={bars}
+                selectedAlgorithm={selectedAlgorithm}
+              ></SearchDisplay>
+            </div>
+          )}
 
           {/* Code Display (Fixed width) */}
           <div className="w-1/4 min-w-[300px]">
@@ -166,12 +192,12 @@ export default function MainPage() {
             setCurrentStep={setCurrentStep}
             speed={speed}
             setSpeed={setSpeed}
-            selectedAlgorithm={selectedAlgorithm} // Full name to Controler
+            selectedAlgorithm={selectedAlgorithm}
+            targetValue={targetValue}
+            setTargetValue={setTargetValue} // Full name to Controler
           />
         </div>
       </div>
     </div>
   );
 }
-
-
