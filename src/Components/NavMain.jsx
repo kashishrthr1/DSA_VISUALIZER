@@ -25,7 +25,13 @@ const algoTypes = [
   {
     id: "tree",
     name: "Tree",
-    algorithms: ["BST Traversal", "AVL Insertion", "Heapify"],
+    algorithms: [
+      "Binary Tree Traversal",
+      "BST Insertion",
+      "AVL Insertion",
+      "Trie Insertion", // New
+      "Segment Tree Build", // New
+    ],
   },
 ];
 

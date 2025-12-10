@@ -1,3 +1,5 @@
+import React from "react";
+
 export default function ColorLegend({ selectedAlgorithm, selectedType }) {
   const sortItems = [
     { color: "bg-[#ffb86b]", label: "Comparing" },
@@ -19,57 +21,45 @@ export default function ColorLegend({ selectedAlgorithm, selectedType }) {
     { color: "bg-[#FF6B6B]", label: "Not Found" },
   ];
 
+  const treeItems = [
+    { color: "bg-[#ffb86b]", label: "Visiting Node" },
+    { color: "bg-[#22C55E]", label: "Processed" },
+    { color: "bg-[#ff6b6b]", label: "Comparison" },
+    { color: "bg-gray-700", label: "Unvisited" },
+  ];
+
+  const renderList = (items) => (
+    <ul className="space-y-2">
+      {items.map((item) => (
+        <li key={item.label} className="flex items-center gap-3">
+          <span
+            className={`w-4 h-4 rounded-sm border border-black ${item.color}`}
+          ></span>
+          <span className="text-sm font-['IBM_Plex_Mono'] text-black">
+            {item.label}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+
   return (
-    <div className="w-full border border-black rounded-xl p-4 bg-white shadow-md">
-      <h3 className="text-[16px] font-semibold mb-3 font-['IBM_Plex_Mono']">
+    <div className="w-full border border-black rounded-xl p-4 bg-white shadow">
+      <h3 className="text-lg font-semibold mb-4 font-['IBM_Plex_Mono']">
         Color Legend
       </h3>
-      {selectedType === "Sorting" && (
-        <ul className="space-y-3">
-          {sortItems.map((item) => (
-            <li key={item.label} className="flex items-center gap-3">
-              <span
-                className={`w-5 h-5 rounded-sm border border-black ${item.color}`}
-              ></span>
-              <span className="text-[14px] font-['IBM_Plex_Mono'] text-black">
-                {item.label}
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
+
+      {selectedType === "Sorting" && renderList(sortItems)}
 
       {selectedType === "Searching" &&
-        selectedAlgorithm === "Linear Search" && (
-          <ul className="space-y-3">
-            {linearItems.map((item) => (
-              <li key={item.label} className="flex items-center gap-3">
-                <span
-                  className={`w-5 h-5 rounded-sm border border-black ${item.color}`}
-                ></span>
-                <span className="text-[14px] font-['IBM_Plex_Mono'] text-black">
-                  {item.label}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
+        selectedAlgorithm === "Linear Search" &&
+        renderList(linearItems)}
 
       {selectedType === "Searching" &&
-        selectedAlgorithm === "Binary Search" && (
-          <ul className="space-y-3">
-            {binaryItems.map((item) => (
-              <li key={item.label} className="flex items-center gap-3">
-                <span
-                  className={`w-5 h-5 rounded-sm border border-black ${item.color}`}
-                ></span>
-                <span className="text-[14px] font-['IBM_Plex_Mono'] text-black">
-                  {item.label}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
+        selectedAlgorithm === "Binary Search" &&
+        renderList(binaryItems)}
+
+      {selectedType === "Tree" && renderList(treeItems)}
     </div>
   );
 }
