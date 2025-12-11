@@ -1,137 +1,159 @@
-function generateShortestPathGraph(arr) {
-    const nodes = arr.map((value, index) => ({
-        id: value,
-        value: value,
-        status: 'unprocessed',
-        distance: Infinity, // Key for Dijkstra's
-        parent: null,
-        x: 50 + (index % 5) * 150,
-        y: 100 + Math.floor(index / 5) * 150,
-    }));
+// src/algorithms/dijkstra.js
 
-    const edges = [];
-    const numNodes = nodes.length;
+import { generateGraphFromInput } from "../utils/generateGraphFromInput.js";
 
-    // Simple fixed directed weighted edges
-    if (numNodes >= 2) edges.push({ id: 'e1', from: nodes[0].id, to: nodes[1].id, weight: 10, status: 'unprocessed' });
-    if (numNodes >= 3) edges.push({ id: 'e2', from: nodes[0].id, to: nodes[2].id, weight: 3, status: 'unprocessed' });
-    if (numNodes >= 4) edges.push({ id: 'e3', from: nodes[1].id, to: nodes[3].id, weight: 4, status: 'unprocessed' });
-    if (numNodes >= 4) edges.push({ id: 'e4', from: nodes[2].id, to: nodes[3].id, weight: 5, status: 'unprocessed' });
-    
-    return { nodes, edges };
+// Reusing the PriorityQueue from Prims
+class PriorityQueue {
+    constructor() {
+        this.items = [];
+    }
+    enqueue(element, priority) {
+        this.items.push({ element, priority });
+        this.items.sort((a, b) => a.priority - b.priority);
+    }
+    dequeue() {
+        return this.items.shift();
+    }
+    isEmpty() {
+        return this.items.length === 0;
+    }
 }
 
-export function dijkstra(arr, startNodeValue) {
+/**
+ * Implements Dijkstra's Algorithm and generates visualization steps.
+ * @param {number[]} nodesArray - Array of node values.
+ * @param {string} edgesString - String of edges (u-v:w).
+ * @param {number} startNodeValue - The value of the starting node.
+ * @returns {Object[]} An array of visualization steps.
+ */
+export function dijkstra(nodesArray, edgesString, startNodeValue) {
     const steps = [];
-    let { nodes, edges } = generateShortestPathGraph(arr);
+    const { graphMap } = generateGraphFromInput(nodesArray, edgesString);
+    
+    // Mutable copies (dist stores the shortest distance found so far)
+    const nodes = Object.values(graphMap).map(n => ({ ...n, dist: Infinity, prev: null }));
+    const edges = generateGraphFromInput(nodesArray, edgesString).edges.map(e => ({ ...e }));
 
-    const startNode = nodes.find(n => n.id === startNodeValue) || nodes[0];
+    const startNode = nodes.find(n => n.value === startNodeValue);
     if (!startNode) return [];
 
-    startNode.distance = 0;
-    startNode.status = 'visiting';
+    const nodeMap = new Map(nodes.map(n => [n.id, n]));
 
-    // Adjacency List Map (node.id -> [{neighborId, weight, edgeId}, ...])
-    const adj = {};
-    nodes.forEach(n => adj[n.id] = []);
-    edges.forEach(e => {
-        adj[e.from].push({ neighborId: e.to, weight: e.weight, edgeId: e.id });
-    });
-
-    let unprocessedNodes = [...nodes];
-    
-    // Initial state
-    steps.push({
-        nodes: JSON.parse(JSON.stringify(nodes)),
-        edges: JSON.parse(JSON.stringify(edges)),
-        line: 5
-    });
-
-
-    while (unprocessedNodes.length > 0) {
-        // Find the unprocessed node with the minimum distance (Simulate Priority Queue)
-        unprocessedNodes.sort((a, b) => a.distance - b.distance);
-        const u = unprocessedNodes.shift(); // line 8
-
-        if (u.distance === Infinity) break;
-
-        u.status = 'visited'; // Mark as having final shortest distance
-
-        // Step 1: Extract minimum node
-        steps.push({
-            nodes: JSON.parse(JSON.stringify(nodes)),
-            edges: JSON.parse(JSON.stringify(edges)),
-            line: 8 
+    function record() {
+        // Highlight shortest path edges based on the 'prev' pointer
+        const pathEdges = new Set();
+        nodes.forEach(n => {
+            if (n.prev) {
+                const edgeKey = `${n.prev.id}-${n.id}`;
+                pathEdges.add(edgeKey);
+            }
         });
 
+        // Update status for edges on the shortest path tree
+        const stepEdges = edges.map(e => {
+            const isPathEdge = pathEdges.has(`${e.from}-${e.to}`);
+            return {
+                ...e,
+                status: isPathEdge ? 'shortestPath' : (e.status === 'shortestPath' ? 'shortestPath' : e.status)
+            };
+        });
+        
+        const step = {
+            bars: nodesArray, 
+            nodes: nodes.map(n => ({ ...n })),
+            edges: stepEdges, // Use stepEdges to reflect shortest path
+            root: null,
+        };
+        steps.push(step);
+    }
 
-        // Update neighbors
-        for (const { neighborId, weight, edgeId } of adj[u.id]) {
-            const v = nodes.find(n => n.id === neighborId);
-            const edge = edges.find(e => e.id === edgeId);
+    // --- Dijkstra's Implementation ---
+
+    const pq = new PriorityQueue();
+    
+    startNode.dist = 0;
+    pq.enqueue(startNode, 0);
+    startNode.status = "start";
+    record();
+    startNode.status = "unvisited";
+
+    while (!pq.isEmpty()) {
+        const { element: u, priority: currentDist } = pq.dequeue();
+        
+        const currentU = nodeMap.get(u.id);
+
+        if (currentU.status === "visited") continue;
+
+        currentU.status = "current";
+        record();
+
+        // Mark as visited (distance finalized)
+        currentU.status = "visited";
+
+        // Examine adjacent edges (using graphMap)
+        const adjList = graphMap[u.value].adj;
+
+        for (const { node: v_ref, edge: edge_ref } of adjList) {
+            const v = nodeMap.get(v_ref.id);
+            const currentEdge = edges.find(e => e.id === edge_ref.id);
             
-            // Relaxation step
-            if (v && u.distance + weight < v.distance) { // line 11
-                v.distance = u.distance + weight;
-                v.parent = u.id;
-                v.status = 'visiting'; 
+            if (currentU.dist + edge_ref.weight < v.dist) {
+                // Relaxation: Found a shorter path!
+                if (currentEdge) currentEdge.status = "visiting";
+                record();
+
+                v.dist = currentU.dist + edge_ref.weight;
+                v.prev = currentU; // Update parent pointer for shortest path tracing
+                v.status = "candidate"; // Mark as having a new, better distance
+                pq.enqueue(v, v.dist);
                 
-                // Mark node status update
-                if(v.distance !== Infinity) {
-                    v.value = `${v.id} (D:${v.distance})`; // Optional: Update display value
-                }
-
-                // Mark edge as current for comparison
-                edge.status = 'current';
-
-                // Step 2: Relaxation/update neighbor
-                steps.push({
-                    nodes: JSON.parse(JSON.stringify(nodes)),
-                    edges: JSON.parse(JSON.stringify(edges)),
-                    line: 12
-                });
-                edge.status = 'unprocessed'; // Reset edge color
+                if (currentEdge) currentEdge.status = "processed";
+                record();
+            } else if (currentEdge) {
+                // Not a shorter path
+                currentEdge.status = "rejected";
+                record();
+                currentEdge.status = "processed";
             }
         }
         
-        // Remove processed node from unprocessed list for the next iteration
-        unprocessedNodes = unprocessedNodes.filter(n => n.id !== u.id);
+        record(); // Final state after processing U
     }
     
-    // Final step: highlight shortest paths
-    edges.forEach(e => {
-        if(nodes.find(n => n.id === e.to)?.parent === e.from) {
-            e.status = 'mst'; // Using 'mst' color for final shortest path
-        }
-    });
-
-    steps.push({
-        nodes: nodes.map(n => ({...n, status: 'visited'})),
-        edges: JSON.parse(JSON.stringify(edges)),
-        line: 14 
-    });
-
     return steps;
 }
 
 export const dijkstraCode = `
-function Dijkstra(graph, startNode) {
-  // Initialize distances, set startNode distance to 0 // line 5
-  const distances = initializeDistances(graph);
-  
-  while (unvisitedNodes is not empty) {
-    const u = extractMin(unvisitedNodes); // line 8
-    u.status = 'visited';
+function Dijkstras(startNode) {
+  const pq = new PriorityQueue();
+  startNode.dist = 0;
+  pq.enqueue(startNode, 0);
 
-    for (const edge(u, v) of u.neighbors) {
-      // Relaxation
-      if (distances[u] + edge.weight < distances[v]) { // line 11
-        distances[v] = distances[u] + edge.weight; // line 12
-        v.parent = u;
+  while (!pq.isEmpty()) {
+    const u = pq.dequeue();
+    if (u.status === 'visited') continue;
+    
+    u.status = 'visited'; // Distance finalized
+    // Record step (Node u finalized)
+
+    for (const { node: v, edge } of u.adj) {
+      if (u.dist + edge.weight < v.dist) {
+        // Relaxation: Found a shorter path
+        edge.status = 'visiting';
+        // Record step (Edge u->v is active)
+        
+        v.dist = u.dist + edge.weight;
+        v.prev = u;
+        v.status = 'candidate';
+        pq.enqueue(v, v.dist);
+        
+        edge.status = 'processed';
+      } else {
+        edge.status = 'rejected';
+        // Record step (Path not shorter, rejected)
+        edge.status = 'processed';
       }
     }
   }
-
-  return distances; // line 14
 }
 `;

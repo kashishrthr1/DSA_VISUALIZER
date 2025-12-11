@@ -1,142 +1,153 @@
 // src/algorithms/prims.js
 
-/**
- * Utility function to convert input array (of node IDs) to a fixed, weighted, 
- * undirected graph structure for visualization.
- */
-function generateWeightedGraph(arr) {
-    // 1. Create nodes with visualization coordinates and initial state
-    const nodes = arr.map((value, index) => ({
-        id: value,
-        value: value,
-        status: 'unprocessed',
-        distance: Infinity, // Key for Prim's
-        parent: null,
-        // Calculate position (simple grid layout)
-        x: 50 + (index % 5) * 150,
-        y: 100 + Math.floor(index / 5) * 150,
-    }));
+import { generateGraphFromInput } from "../utils/generateGraphFromInput.js";
 
-    // 2. Define fixed weighted edges based on node IDs
-    const edges = [];
-    if (nodes.length >= 5) {
-        // IDs must match values in arr (e.g., if arr = [1, 2, 3, 4, 5])
-        edges.push({ id: 'e1', from: nodes[0].id, to: nodes[1].id, weight: 10, status: 'unprocessed' });
-        edges.push({ id: 'e2', from: nodes[0].id, to: nodes[2].id, weight: 6, status: 'unprocessed' });
-        edges.push({ id: 'e3', from: nodes[1].id, to: nodes[3].id, weight: 4, status: 'unprocessed' });
-        edges.push({ id: 'e4', from: nodes[2].id, to: nodes[3].id, weight: 12, status: 'unprocessed' });
-        edges.push({ id: 'e5', from: nodes[1].id, to: nodes[4].id, weight: 3, status: 'unprocessed' });
-        edges.push({ id: 'e6', from: nodes[3].id, to: nodes[4].id, weight: 8, status: 'unprocessed' });
-    } else {
-        // Fallback for smaller arrays (less complex, but connected)
-        for (let i = 0; i < nodes.length - 1; i++) {
-             edges.push({ id: `e${i}`, from: nodes[i].id, to: nodes[i+1].id, weight: 1 + i, status: 'unprocessed' });
-        }
+// Simple Priority Queue implementation for demonstration
+class PriorityQueue {
+    constructor() {
+        this.items = [];
     }
-    
-    return { nodes, edges };
+    enqueue(element, priority) {
+        this.items.push({ element, priority });
+        this.items.sort((a, b) => a.priority - b.priority); // Sort by priority
+    }
+    dequeue() {
+        return this.items.shift();
+    }
+    isEmpty() {
+        return this.items.length === 0;
+    }
 }
 
-export function prims(arr, startNodeValue) {
+/**
+ * Implements Prim's Algorithm and generates visualization steps.
+ * @param {number[]} nodesArray - Array of node values.
+ * @param {string} edgesString - String of edges (u-v:w).
+ * @param {number} startNodeValue - The value of the starting node.
+ * @returns {Object[]} An array of visualization steps.
+ */
+export function prims(nodesArray, edgesString, startNodeValue) {
     const steps = [];
-    let { nodes, edges } = generateWeightedGraph(arr); // Use the fixed graph generator
+    const { graphMap } = generateGraphFromInput(nodesArray, edgesString);
+    
+    // Mutable copies
+    const nodes = Object.values(graphMap).map(n => ({ ...n, minCost: Infinity, parentEdge: null }));
+    const edges = generateGraphFromInput(nodesArray, edgesString).edges.map(e => ({ ...e }));
 
-    const startNode = nodes.find(n => n.id === startNodeValue) || nodes[0];
+    const startNode = nodes.find(n => n.value === startNodeValue);
     if (!startNode) return [];
 
-    startNode.distance = 0; // Starting node has key 0
-    startNode.status = 'visiting';
+    const nodeMap = new Map(nodes.map(n => [n.id, n]));
+    
+    function record() {
+        const step = {
+            bars: nodesArray, 
+            nodes: nodes.map(n => ({ ...n })),
+            edges: edges.map(e => ({ ...e })),
+            root: null,
+        };
+        steps.push(step);
+    }
 
-    // Build Adjacency List for efficient neighbor lookup
-    const adj = {};
-    nodes.forEach(n => adj[n.id] = []);
-    edges.forEach(e => {
-        adj[e.from].push({ neighborId: e.to, weight: e.weight, edgeId: e.id });
-        adj[e.to].push({ neighborId: e.from, weight: e.weight, edgeId: e.id }); // Undirected
-    });
+    // --- Prim's Implementation ---
+    
+    const pq = new PriorityQueue();
+    startNode.minCost = 0;
+    pq.enqueue(startNode, 0);
+    startNode.status = "start";
+    record();
 
-    let unprocessedNodes = [...nodes];
-
-    // Initial state (line 5: initialization)
-    steps.push({
-        nodes: JSON.parse(JSON.stringify(nodes)),
-        edges: JSON.parse(JSON.stringify(edges)),
-        line: 5
-    });
-
-    while (unprocessedNodes.length > 0) {
-        // Find the unprocessed node with the minimum distance (Simulate Priority Queue)
-        unprocessedNodes.sort((a, b) => a.distance - b.distance);
-        const u = unprocessedNodes.shift(); // line 8
-
-        if (u.distance === Infinity) break;
-
-        u.status = 'visited'; // Mark as part of MST
-
-        // Step 1: Select minimum node
-        // The edge that added 'u' to the MST should be marked 'mst' here.
-        if (u.parent) {
-             const mstEdge = edges.find(e => (e.from === u.id && e.to === u.parent) || (e.from === u.parent && e.to === u.id));
-             if (mstEdge) mstEdge.status = 'mst';
-        }
-        steps.push({
-            nodes: JSON.parse(JSON.stringify(nodes)),
-            edges: JSON.parse(JSON.stringify(edges)),
-            line: 8 
-        });
+    while (!pq.isEmpty()) {
+        const { element: u, priority: cost } = pq.dequeue();
         
-        // Update neighbors
-        for (const { neighborId, weight, edgeId } of adj[u.id]) {
-            const v = nodes.find(n => n.id === neighborId);
-            const edge = edges.find(e => e.id === edgeId);
-            
-            if (v && v.status !== 'visited' && weight < v.distance) { // line 11 (Relaxation check)
-                v.distance = weight;
-                v.parent = u.id; // Record the edge to MST
-                v.status = 'visiting'; // Potential candidate
-                
-                // Step 2: Relaxation/update neighbor
-                steps.push({
-                    nodes: JSON.parse(JSON.stringify(nodes)),
-                    edges: edges.map(e => ({
-                        ...e, 
-                        status: e.id === edgeId ? 'current' : e.status
-                    })),
-                    line: 12
-                });
+        // Find the node in the mutable array
+        const currentU = nodeMap.get(u.id);
+
+        if (currentU.status === "visited") continue;
+
+        currentU.status = "current"; 
+        record(); 
+        
+        // Add the edge that brought us here to the MST (if it exists)
+        if (currentU.parentEdge) {
+            const mstEdge = edges.find(e => e.id === currentU.parentEdge.id);
+            if (mstEdge) mstEdge.status = "mst";
+        }
+        record(); // Show the MST edge selection
+
+        // Mark as visited and part of the MST
+        currentU.status = "visited";
+
+        // Examine adjacent edges (using graphMap which holds the adjacency list)
+        const adjList = graphMap[u.value].adj;
+
+        for (const { node: v_ref, edge: edge_ref } of adjList) {
+            const v = nodeMap.get(v_ref.id);
+            const currentEdge = edges.find(e => e.id === edge_ref.id);
+            const isReverse = edge_ref.id.endsWith("-r"); // Ignore reverse edges to avoid double-processing
+
+            if (v.status !== "visited" && edge_ref.weight < v.minCost && !isReverse) {
+                // Found a cheaper edge!
+                if (currentEdge) currentEdge.status = "visiting"; // Candidate edge
+                record();
+
+                v.minCost = edge_ref.weight;
+                v.parentEdge = currentEdge; 
+                v.status = "candidate"; // Mark as a strong candidate
+                pq.enqueue(v, v.minCost);
+
+                if (currentEdge) currentEdge.status = "processed"; // Edge added to PQ
+                record();
+            } else if (v.status !== "visited" && !isReverse) {
+                 // Checked but not cheaper
+                 if (currentEdge) currentEdge.status = "rejected"; 
+                 record();
+                 if (currentEdge) currentEdge.status = "processed"; 
             }
         }
         
-        // Remove processed node from unprocessed list for the next iteration
-        unprocessedNodes = unprocessedNodes.filter(n => n.id !== u.id);
+        record(); // Final state after processing U
     }
     
-    // Final step
-    steps.push({
-        nodes: JSON.parse(JSON.stringify(nodes.map(n => ({...n, status: 'visited'})))),
-        edges: edges.map(e => ({...e, status: e.status === 'mst' ? 'mst' : 'unprocessed'})),
-        line: 14 
-    });
-
     return steps;
 }
 
 export const primsCode = `
-function Prims(graph, startNode) {
-  // Initialize distances, set startNode distance to 0 // line 5
+function Prims(startNode) {
+  const pq = new PriorityQueue();
+  startNode.minCost = 0;
+  pq.enqueue(startNode, 0);
 
-  while (unprocessedNodes is not empty) {
-    const u = extractMin(unprocessedNodes); // line 8
+  while (!pq.isEmpty()) {
+    const u = pq.dequeue();
+    if (u.status === 'visited') continue;
+    
+    u.status = 'current';
+    // Record step (Current node u selected)
+
+    if (u.parentEdge) {
+      u.parentEdge.status = 'mst'; 
+      // Record step (Edge is added to MST)
+    }
     u.status = 'visited';
+    
+    for (const { node: v, edge } of u.adj) {
+      if (v.status !== 'visited' && edge.weight < v.minCost) {
+        edge.status = 'visiting';
+        // Record step (Found a better edge)
 
-    for (const edge(u, v) of u.neighbors) {
-      if (v.status !== 'visited' && edge.weight < v.distance) { // line 11
-        v.distance = edge.weight; // line 12
-        v.parent = u;
+        v.minCost = edge.weight;
+        v.parentEdge = edge;
+        v.status = 'candidate';
+        pq.enqueue(v, v.minCost);
+        
+        edge.status = 'processed';
+      } else if (v.status !== 'visited') {
+        edge.status = 'rejected';
+        // Record step (Edge not better, rejected)
+        edge.status = 'processed';
       }
     }
   }
-  // MST is the set of edges (v.parent, v) for all v != startNode // line 14
 }
 `;
-//

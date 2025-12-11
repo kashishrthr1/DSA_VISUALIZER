@@ -1,150 +1,134 @@
 // src/algorithms/kruskal.js
 
-/**
- * Utility function to convert input array (of node IDs) to a fixed, weighted, 
- * undirected graph structure for visualization. (Same as Prim's for consistent testing)
- */
-function generateEdgeListGraph(arr) {
-    // 1. Create nodes with visualization coordinates
-    const nodes = arr.map((value, index) => ({
-        id: value,
-        value: value,
-        status: 'unprocessed',
-        // Calculate position (simple grid layout)
-        x: 50 + (index % 5) * 150,
-        y: 100 + Math.floor(index / 5) * 150,
-    }));
+import { generateGraphFromInput } from "../utils/generateGraphFromInput.js";
 
-    // 2. Define fixed weighted edges based on node IDs
-    const edges = [];
-    if (nodes.length >= 5) {
-        // IDs must match values in arr (e.g., if arr = [1, 2, 3, 4, 5])
-        edges.push({ id: 'e1', from: nodes[0].id, to: nodes[1].id, weight: 10, status: 'unprocessed' });
-        edges.push({ id: 'e2', from: nodes[0].id, to: nodes[2].id, weight: 6, status: 'unprocessed' });
-        edges.push({ id: 'e3', from: nodes[1].id, to: nodes[3].id, weight: 4, status: 'unprocessed' });
-        edges.push({ id: 'e4', from: nodes[2].id, to: nodes[3].id, weight: 12, status: 'unprocessed' });
-        edges.push({ id: 'e5', from: nodes[1].id, to: nodes[4].id, weight: 3, status: 'unprocessed' });
-        edges.push({ id: 'e6', from: nodes[3].id, to: nodes[4].id, weight: 8, status: 'unprocessed' });
-    } else {
-        // Fallback for smaller arrays (less complex, but connected)
-        for (let i = 0; i < nodes.length - 1; i++) {
-             edges.push({ id: `e${i}`, from: nodes[i].id, to: nodes[i+1].id, weight: 1 + i, status: 'unprocessed' });
-        }
+// Simple Disjoint Set Union (DSU) implementation
+class DSU {
+    constructor(nodes) {
+        this.parent = new Map();
+        nodes.forEach(node => this.parent.set(node.id, node.id));
     }
-    
-    return { nodes, edges };
+    find(i) {
+        if (this.parent.get(i) === i) return i;
+        const root = this.find(this.parent.get(i));
+        this.parent.set(i, root);
+        return root;
+    }
+    union(i, j) {
+        const rootI = this.find(i);
+        const rootJ = this.find(j);
+        if (rootI !== rootJ) {
+            this.parent.set(rootI, rootJ);
+            return true; // Union successful (they were in different sets)
+        }
+        return false; // Already in the same set (would create a cycle)
+    }
 }
 
-export function kruskal(arr) {
+/**
+ * Implements Kruskal's Algorithm and generates visualization steps.
+ * @param {number[]} nodesArray - Array of node values.
+ * @param {string} edgesString - String of edges (u-v:w).
+ * @returns {Object[]} An array of visualization steps.
+ */
+export function kruskal(nodesArray, edgesString) {
     const steps = [];
-    let { nodes, edges } = generateEdgeListGraph(arr);
-
-    // Sort all edges by weight (line 5)
-    edges.sort((a, b) => a.weight - b.weight);
-
-    // Union-Find structure (Simulated Disjoint Set)
-    const parent = {};
-    nodes.forEach(n => parent[n.id] = n.id);
-
-    function find(i) {
-        if (parent[i] === i) return i;
-        // Path compression
-        parent[i] = find(parent[i]);
-        return parent[i];
-    }
-
-    function union(i, j) {
-        const rootI = find(i);
-        const rootJ = find(j);
-        if (rootI !== rootJ) {
-            // Union by rank/size (simple implementation)
-            parent[rootI] = rootJ;
-            return true;
-        }
-        return false;
-    }
-
-    let mstEdges = [];
-    let edgeIndex = 0;
+    const { nodes: initialNodes, edges: initialEdges } = generateGraphFromInput(nodesArray, edgesString);
     
-    // Initial state (line 5: sorting done)
-    steps.push({
-        nodes: JSON.parse(JSON.stringify(nodes)),
-        edges: edges.map(e => ({...e, status: 'unprocessed'})),
-        line: 5
-    });
+    // Mutable copies
+    const nodes = initialNodes.map(n => ({ ...n, status: "unvisited" }));
+    const edges = initialEdges.map(e => ({ ...e }));
 
-    while (mstEdges.length < nodes.length - 1 && edgeIndex < edges.length) {
-        const edge = edges[edgeIndex]; // Get the next lightest edge (line 8)
-        edgeIndex++;
+    const nodeMap = new Map(nodes.map(n => [n.id, n]));
+    
+    function record() {
+        const step = {
+            bars: nodesArray, 
+            nodes: nodes.map(n => ({ ...n })),
+            edges: edges.map(e => ({ ...e })),
+            root: null,
+        };
+        steps.push(step);
+    }
 
-        // Step 1: Highlight current edge for consideration
-        const currentEdgesStep = edges.map(e => ({...e, status: e.id === edge.id ? 'current' : e.status}));
-        steps.push({
-            nodes: JSON.parse(JSON.stringify(nodes)),
-            edges: currentEdgesStep,
-            line: 8
-        });
+    // --- Kruskal's Implementation ---
 
-        // Check if adding this edge creates a cycle (line 9)
-        if (find(edge.from) !== find(edge.to)) { 
-            union(edge.from, edge.to); // Add edge to MST (line 11)
-            mstEdges.push(edge);
-            
-            // Mark edge as part of MST for visualization
-            const edgeInMasterList = edges.find(e => e.id === edge.id);
-            if(edgeInMasterList) edgeInMasterList.status = 'mst';
-            
-            // Mark nodes as 'visited' (part of the growing forest/MST)
-            nodes.find(n => n.id === edge.from).status = 'visited';
-            nodes.find(n => n.id === edge.to).status = 'visited';
+    // 1. Sort all unique edges by weight
+    const uniqueEdges = edges
+        .filter(e => !e.id.endsWith("-r")) // Only keep one direction for undirected edges
+        .sort((a, b) => a.weight - b.weight);
 
+    const dsu = new DSU(nodes);
+    
+    // Initial state
+    record();
 
-            // Step 2: Edge added to MST (no cycle)
-            steps.push({
-                nodes: JSON.parse(JSON.stringify(nodes)),
-                edges: JSON.parse(JSON.stringify(edges)),
-                line: 11
-            });
+    // 2. Iterate through sorted edges
+    for (const edge of uniqueEdges) {
+        const u = edge.from;
+        const v = edge.to;
+        
+        // Find all representations of this edge (forward and reverse)
+        const forwardEdge = edges.find(e => e.id === edge.id);
+        const reverseEdge = edges.find(e => e.id === `${v}-${u}-${edge.id.split('-').pop()}-r`);
+        
+        if (forwardEdge) forwardEdge.status = "current";
+        if (reverseEdge) reverseEdge.status = "current";
+        nodeMap.get(u).status = "current";
+        nodeMap.get(v).status = "current";
+        record();
+
+        // Check for cycle using DSU
+        if (dsu.union(u, v)) {
+            // No cycle: include edge in MST
+            if (forwardEdge) forwardEdge.status = "mst";
+            if (reverseEdge) reverseEdge.status = "mst";
         } else {
-            // Edge rejected (cycle created)
-            steps.push({
-                nodes: JSON.parse(JSON.stringify(nodes)),
-                edges: currentEdgesStep.map(e => ({...e, status: e.id === edge.id ? 'rejected' : e.status})),
-                line: 9
-            });
-            // Reset the rejected edge's status in the visualization list
-            const edgeInMasterList = edges.find(e => e.id === edge.id);
-            if(edgeInMasterList) edgeInMasterList.status = 'unprocessed'; 
+            // Cycle: reject edge
+            if (forwardEdge) forwardEdge.status = "rejected";
+            if (reverseEdge) reverseEdge.status = "rejected";
         }
+        
+        // Mark nodes as processed
+        nodeMap.get(u).status = "visited";
+        nodeMap.get(v).status = "visited";
+        record();
+        
+        // Mark edge status as final processed
+        if (forwardEdge) forwardEdge.status = forwardEdge.status === "mst" ? "mst" : "processed";
+        if (reverseEdge) reverseEdge.status = reverseEdge.status === "mst" ? "mst" : "processed";
+        record();
     }
     
-    // Final step (line 13)
-    steps.push({
-        nodes: nodes.map(n => ({...n, status: 'visited'})),
-        edges: edges.map(e => ({...e, status: e.status === 'mst' ? 'mst' : 'unprocessed'})),
-        line: 13
-    });
-
     return steps;
 }
 
 export const kruskalCode = `
-function Kruskal(graph) {
-  // 1. Create a Disjoint Set Union (DSU) structure
-  // 2. Sort all edges by weight, w
-  const sortedEdges = sort(graph.edges); // line 5
+function Kruskals(nodes, edges) {
+  edges.sort((a, b) => a.weight - b.weight);
+  const dsu = new DSU(nodes);
+  const mst = [];
 
-  const MST = [];
+  for (const edge of edges) {
+    const u = edge.from;
+    const v = edge.to;
+    
+    edge.status = 'current';
+    // Record step (Edge u-v is being checked)
 
-  for (const edge of sortedEdges) { // line 8
-    if (find(edge.u) !== find(edge.v)) { // line 9 (No Cycle)
-      union(edge.u, edge.v); // line 11
-      MST.push(edge);
+    if (dsu.find(u) !== dsu.find(v)) {
+      // No cycle: include edge
+      dsu.union(u, v);
+      mst.push(edge);
+      edge.status = 'mst';
+      // Record step (Edge added to MST)
+    } else {
+      // Cycle: reject edge
+      edge.status = 'rejected';
+      // Record step (Edge rejected due to cycle)
     }
+    edge.status = 'processed'; // or 'mst'
   }
-
-  return MST; // line 13
+  return mst;
 }
 `;
-//

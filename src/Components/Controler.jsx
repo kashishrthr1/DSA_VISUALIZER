@@ -1,8 +1,11 @@
+// src/components/Controler.jsx
+
 import "../App.css";
 import generateArray from "../utils/generateArray.js";
+import { generateGraphFromInput } from "../utils/generateGraphFromInput.js";
 import React, { useState, useEffect } from "react";
 
-// --- SORTING ALGORITHM IMPORTS ---
+// SORTS
 import { selectionSort } from "../algorithms/selectionSort.js";
 import { bubbleSort } from "../algorithms/bubbleSort.js";
 import { insertionSort } from "../algorithms/insertionSort.js";
@@ -10,24 +13,25 @@ import { quickSort } from "../algorithms/quickSort.js";
 import { mergeSort } from "../algorithms/mergeSort.js";
 import { heapSort } from "../algorithms/heapSort.js";
 import { radixSort } from "../algorithms/radixSort.js";
-// --- SEARCHING ALGORITHM IMPORTS (NEW) ---
+
+// SEARCH
 import { linearSearch } from "../algorithms/linearSearch.js";
 import { binarySearch } from "../algorithms/binarySearch.js";
-// --- TREE ALGORITHM IMPORTS (NEW) ---
+
+// TREES
 import { treeTraversal } from "../algorithms/treeTraversal.js";
 import { bstInsertion } from "../algorithms/bstInsertion.js";
 import { avlInsertion } from "../algorithms/avlInsertion.js";
 import { trieInsertion } from "../algorithms/trieInsertion.js";
 import { segmentTreeBuild } from "../algorithms/segmentTreeBuild.js";
-// --- GRAPH ALGORITHM IMPORTS (NEW) ---
+
+// GRAPHS
 import { bfs } from "../algorithms/bfs.js";
 import { dfs } from "../algorithms/dfs.js";
 import { dijkstra } from "../algorithms/dijkstra.js";
 import { kruskal } from "../algorithms/kruskal.js";
 import { prims } from "../algorithms/prims.js";
-// -------------------------------------
 
-// Helper map to convert NavMain's full names to Controller's keys
 const algoKeyMap = {
   "Selection Sort": "selection",
   "Bubble Sort": "bubble",
@@ -38,19 +42,16 @@ const algoKeyMap = {
   "Radix Sort": "radix",
   "Linear Search": "linear",
   "Binary Search": "binary",
-  // --- TREE ALGORITHMS ---
   "Binary Tree Traversal": "treeTraversal",
   "BST Insertion": "bstInsertion",
   "AVL Insertion": "avlInsertion",
   "Trie Insertion": "trieInsertion",
   "Segment Tree Build": "segmentTreeBuild",
-  // --- GRAPH ALGORITHMS ---
   "Breadth First Search": "bfs",
   "Depth First Search": "dfs",
   "Dijkstra's Algorithm": "dijkstra",
   "Kruskal's Algorithm": "kruskal",
   "Prim's Algorithm": "prims",
-  // ----------------------
 };
 
 export default function Controler({
@@ -66,12 +67,22 @@ export default function Controler({
   setCurrentStep,
   speed,
   setSpeed,
-  selectedAlgorithm, // Full name from MainPage state
+  selectedAlgorithm,
   targetValue,
   setTargetValue,
 }) {
   const speedOptions = [0.25, 0.5, 1, 2, 4, 8, 16];
   const selectedAlgoKey = algoKeyMap[selectedAlgorithm] || null;
+
+  const isSorting = [
+    "selection",
+    "bubble",
+    "insertion",
+    "quick",
+    "merge",
+    "heap",
+    "radix",
+  ].includes(selectedAlgoKey);
   const isSearching = ["linear", "binary"].includes(selectedAlgoKey);
   const isTree = [
     "treeTraversal",
@@ -80,266 +91,238 @@ export default function Controler({
     "trieInsertion",
     "segmentTreeBuild",
   ].includes(selectedAlgoKey);
-  // --- NEW GRAPH FLAG ---
-  const isGraph = ["bfs", "dfs", "dijkstra", "kruskal", "prims"].includes(selectedAlgoKey);
-
-  const getRawArray = () => {
-    // Safely extract the raw array of values
-    if (Array.isArray(bars)) return bars;
-    if (bars && Array.isArray(bars.bars)) return bars.bars;
-    return [];
-  };
-
-  // --- LOCAL STATE FOR USER INPUT ---
-  // Initialize with a default or current array state
-  const [userInputArray, setUserInputArray] = useState(
-    getRawArray().length > 0 ? getRawArray().join(", ") : "1, 2, 3, 4, 5"
+  const isGraph = ["bfs", "dfs", "dijkstra", "kruskal", "prims"].includes(
+    selectedAlgoKey
   );
-  const [userInputTarget, setUserInputTarget] = useState(String(targetValue));
+
+  const parseNodes = (input) => {
+    return input
+      .split(",")
+      .map((s) => Number(s.trim()))
+      .filter((n) => !isNaN(n));
+  };
+
+  const [userInputArray, setUserInputArray] = useState(
+    (bars?.bars || []).join(", ") || "1, 2, 3"
+  );
+  const [userInputTarget, setUserInputTarget] = useState(
+    String(targetValue || 1)
+  );
+  const [edgeInput, setEdgeInput] = useState("");
 
   useEffect(() => {
-    // Sync the input field with the current visualization data when steps are reset
-    if (steps.length === 0) {
-      setUserInputArray(getRawArray().join(", "));
+    if (steps.length === 0 && bars?.bars) {
+      setUserInputArray(bars.bars.join(", "));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bars, isTree, isGraph]); 
+  }, [bars, steps.length]);
 
-  useEffect(() => {
-    // Sync target input with main target state
-    setUserInputTarget(String(targetValue));
-  }, [targetValue]);
+  const buildStepsForSelectedAlgo = (nodes, target, edgesString) => {
+    if (isSorting || isSearching) {
+      if (selectedAlgoKey === "selection") return selectionSort(nodes);
+      if (selectedAlgoKey === "bubble") return bubbleSort(nodes);
+      if (selectedAlgoKey === "insertion") return insertionSort(nodes);
+      if (selectedAlgoKey === "quick") return quickSort(nodes);
+      if (selectedAlgoKey === "merge") return mergeSort(nodes);
+      if (selectedAlgoKey === "heap") return heapSort(nodes);
+      if (selectedAlgoKey === "radix") return radixSort(nodes);
+      if (selectedAlgoKey === "linear") return linearSearch(nodes, target);
+      if (selectedAlgoKey === "binary") return binarySearch(nodes, target);
+    }
 
-  // --- CORE LOGIC: Determines which algorithm function to call ---
-  const buildStepsForSelectedAlgo = (arr, target) => {
-    // SORTING ALGORITHMS
-    if (selectedAlgoKey === "selection") return selectionSort(arr);
-    if (selectedAlgoKey === "bubble") return bubbleSort(arr);
-    if (selectedAlgoKey === "insertion") return insertionSort(arr);
-    if (selectedAlgoKey === "quick") return quickSort(arr);
-    if (selectedAlgoKey === "merge") return mergeSort(arr);
-    if (selectedAlgoKey === "heap") return heapSort(arr);
-    if (selectedAlgoKey === "radix") return radixSort(arr);
+    if (isGraph) {
+      if (selectedAlgoKey === "bfs") return bfs(nodes, edgesString, target);
+      if (selectedAlgoKey === "dfs") return dfs(nodes, edgesString, target);
+      if (selectedAlgoKey === "dijkstra")
+        return dijkstra(nodes, edgesString, target);
+      if (selectedAlgoKey === "kruskal") return kruskal(nodes, edgesString);
+      if (selectedAlgoKey === "prims") return prims(nodes, edgesString, target);
+    }
 
-    // SEARCHING ALGORITHMS
-    if (selectedAlgoKey === "linear") return linearSearch(arr, target);
-    if (selectedAlgoKey === "binary") return binarySearch(arr, target);
+    if (isTree) {
+      if (selectedAlgoKey === "treeTraversal") return treeTraversal(nodes);
+      if (selectedAlgoKey === "bstInsertion") return bstInsertion(nodes);
+      if (selectedAlgoKey === "avlInsertion") return avlInsertion(nodes);
+      if (selectedAlgoKey === "trieInsertion") return trieInsertion(nodes);
+      if (selectedAlgoKey === "segmentTreeBuild")
+        return segmentTreeBuild(nodes);
+    }
 
-    // TREE ALGORITHMS
-    if (selectedAlgoKey === "treeTraversal") return treeTraversal(arr);
-    if (selectedAlgoKey === "bstInsertion") return bstInsertion(arr);
-    if (selectedAlgoKey === "avlInsertion") return avlInsertion(arr);
-    if (selectedAlgoKey === "trieInsertion") return trieInsertion(arr);
-    if (selectedAlgoKey === "segmentTreeBuild") return segmentTreeBuild(arr);
-
-    // --- GRAPH ALGORITHMS ---
-    if (selectedAlgoKey === "bfs") return bfs(arr, target); 
-    if (selectedAlgoKey === "dfs") return dfs(arr, target);
-    if (selectedAlgoKey === "dijkstra") return dijkstra(arr, target); 
-    if (selectedAlgoKey === "kruskal") return kruskal(arr);
-    if (selectedAlgoKey === "prims") return prims(arr, target);
-    
     return [];
   };
 
-  // --- HANDLERS ---
-  // 1. Custom Generate Handler (Fixed Logic)
   const handleGenerate = () => {
-    let newRawArray;
-    let newTargetValue = Number(userInputTarget);
+    const nodes = parseNodes(userInputArray);
 
-    if (isSearching || isTree || isGraph) {
-      // For Searching/Tree/Graph: Parse the user input array
-      newRawArray = userInputArray
-        .split(",")
-        // Parse numbers, trim whitespace, and filter out invalid entries
-        .map((s) => Number(s.trim()))
-        .filter((n) => !isNaN(n) && n !== null);
-      
-      // Safety check for empty graph input
-      if (newRawArray.length === 0) {
-          alert("Node Values input is empty or invalid. Please provide comma-separated numbers (e.g., 1, 2, 3).");
-          return;
+    if (isGraph) {
+      if (nodes.length === 0) {
+        alert("Graph nodes cannot be empty.");
+        return;
       }
 
-      setInputSize(newRawArray.length);
-    } else {
-      // For Sorting: Generate a new random array based on inputSize
-      newRawArray = generateArray(inputSize);
-      setUserInputArray(newRawArray.join(", ")); // Sync local input field
+      const { nodes: structuredNodes, edges: structuredEdges } =
+        generateGraphFromInput(nodes, edgeInput);
+
+      setBars({
+        bars: nodes,
+        comparing: [],
+        swapping: [],
+        found: [],
+        nodes: structuredNodes,
+        edges: structuredEdges,
+        root: null,
+      });
+    } else if (isSorting) {
+      const finalNodes =
+        nodes.length > 0 && nodes.length === inputSize
+          ? nodes
+          : generateArray(inputSize);
+
+      setUserInputArray(finalNodes.join(", "));
+
+      setBars({
+        bars: finalNodes,
+        comparing: [],
+        swapping: [],
+        found: [],
+        nodes: [],
+        edges: [],
+        root: null,
+      });
     }
-
-    // Update MainPage state
-    setBars({
-      bars: newRawArray,
-      comparing: [],
-      swapping: [],
-      found: [],
-      root: null,
-      nodes: [], // IMPORTANT: Reset graph state
-      edges: [], // IMPORTANT: Reset graph state
-    });
-
-    setTargetValue(newTargetValue);
 
     setSteps([]);
     setCurrentStep(0);
     setPlaying(false);
   };
 
-  // 2. Play/Pause Handler (Fixed Logic to use latest data)
   const handlePlayPause = () => {
     if (!selectedAlgoKey) return;
 
     if (steps.length === 0 || currentStep === steps.length - 1) {
-      // Force generation based on current input before running the algorithm
-      handleGenerate(); 
+      const nodes = parseNodes(userInputArray);
+      const target = Number(userInputTarget);
 
-      // Retrieve the freshly generated/parsed array from the state
-      const raw = getRawArray();
-      const recordSteps = buildStepsForSelectedAlgo(raw, targetValue);
+      const newSteps = buildStepsForSelectedAlgo(nodes, target, edgeInput);
 
-      if (recordSteps.length === 0) {
-        setSteps([{ bars: [...raw], comparing: [], swapping: [], root: null, nodes: [], edges: [] }]);
-      } else {
-        setSteps(recordSteps);
+      if (newSteps.length === 0) {
+        setPlaying(false);
+        return;
       }
 
+      setSteps(newSteps);
+      setBars(newSteps[0]);
       setCurrentStep(0);
       setPlaying(true);
       return;
     }
 
-    setPlaying((prev) => !prev);
-  };
-
-  const handleReplay = () => {
-    if (steps.length > 0) {
-      setCurrentStep(0);
-      setBars(steps[0]);
-      setPlaying(true);
-    }
-  };
-
-  const handleSkipForward = () => {
-    setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
-  };
-
-  const handleSkipBackward = () => {
-    setCurrentStep((prev) => Math.max(prev - 1, 0));
+    setPlaying((p) => !p);
   };
 
   return (
-    <div className="w-[1100px] h-[90px] bg-[rgba(18,18,24,0.85)] backdrop-blur-md rounded-3xl flex items-center px-8 space-x-8 border border-white/10 shadow-lg">
-      {/* --- Playback Controls --- (Unchanged) */}
-      <div className="flex items-center space-x-4 text-white">
+    <div className="w-full h-[120px] bg-[rgba(18,18,24,0.85)] backdrop-blur-xl rounded-3xl border border-white/10 shadow-xl px-6 flex items-center justify-between space-x-6 overflow-hidden">
+      {/* LEFT CONTROLS */}
+      <div className="flex items-center space-x-3 text-white shrink-0">
         <button
-          className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-xl transition"
           onClick={handlePlayPause}
-          disabled={!selectedAlgoKey}
+          className="w-10 h-10 hover:bg-white/10 rounded-xl flex items-center justify-center"
         >
-          {isPlaying && currentStep < steps.length - 1 ? (
-            <svg width="24" height="24" fill="white" viewBox="0 0 24 24">
-              <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
-            </svg>
-          ) : (
-            <svg width="24" height="24" fill="white" viewBox="0 0 24 24">
-              <path d="M8 5v14l11-7z" />
-            </svg>
-          )}
+          {isPlaying ? "❚❚" : "▶"}
         </button>
 
         <button
-          className="w-9 h-9 flex items-center justify-center hover:bg-white/10 rounded-xl transition"
-          onClick={handleReplay}
-          disabled={steps.length === 0}
+          onClick={() => setCurrentStep(0)}
+          className="w-9 h-9 hover:bg-white/10 rounded-xl flex items-center justify-center"
         >
-          <svg width="24" height="24" fill="white" viewBox="0 0 24 24">
-            <path d="M12 5V1L8 5l4 4V6c3.31 0 6 2.69 6 6a6 6 0 01-6 6c-2.22 0-4.15-1.21-5.19-3H4.26a8 8 0 0014.48 0A8 8 0 0012 5z" />
-          </svg>
+          ⟳
         </button>
 
         <button
-          className="w-9 h-9 flex items-center justify-center hover:bg-white/10 rounded-xl transition"
-          onClick={handleSkipBackward}
-          disabled={currentStep === 0}
+          onClick={() => setCurrentStep((p) => Math.max(0, p - 1))}
+          className="w-9 h-9 hover:bg-white/10 rounded-xl flex items-center justify-center"
         >
-          <svg width="28" height="28" fill="white" viewBox="0 0 24 24">
-            <path d="M18 6l-8.5 6L18 18V6zm-11 0H5v12h2V6z" />
-          </svg>
+          ⟸
         </button>
 
         <button
-          className="w-9 h-9 flex items-center justify-center hover:bg-white/10 rounded-xl transition"
-          onClick={handleSkipForward}
-          disabled={currentStep === steps.length - 1}
+          onClick={() =>
+            setCurrentStep((p) => Math.min(steps.length - 1, p + 1))
+          }
+          className="w-9 h-9 hover:bg-white/10 rounded-xl flex items-center justify-center"
         >
-          <svg width="28" height="28" fill="white" viewBox="0 0 24 24">
-            <path d="M6 18l8.5-6L6 6v12zm9-12h2v12h-2V6z" />
-          </svg>
+          ⟹
         </button>
       </div>
 
-      {/* --- Speed Slider --- (Unchanged) */}
-      <div className="flex items-center space-x-3 text-white flex-1">
-        <span className="text-[16px] font-mono">{speed}x</span>
+      {/* SPEED SLIDER */}
+      <div className="flex items-center space-x-3 text-white flex-1 max-w-[260px]">
+        <span>{speed}x</span>
         <input
           type="range"
           min="0"
           max={speedOptions.length - 1}
-          step="1"
           value={speedOptions.indexOf(speed)}
-          onChange={(e) => setSpeed(speedOptions[Number(e.target.value)])}
-          className="w-[220px] accent-white cursor-pointer"
+          onChange={(e) => setSpeed(speedOptions[e.target.value])}
+          className="w-full accent-white"
         />
       </div>
 
-      {/* --- Inputs --- (Logic for conditional display is correct) */}
-      <div className="flex items-center space-x-6 text-white font-mono">
-        {/* Array Input */}
-        <div className="flex flex-col text-[13px]">
-          <label className="opacity-80">Array/Node Values</label>
+      {/* INPUTS */}
+      <div className="flex items-center space-x-5 text-white font-mono flex-wrap">
+        <div>
+          <label className="text-sm block opacity-70 mb-1">Nodes</label>
           <input
-            type="text"
             value={userInputArray}
             onChange={(e) => setUserInputArray(e.target.value)}
-            className="w-[220px] px-2 py-1 text-center bg-white text-black rounded-lg shadow-sm mt-1"
+            className="w-[150px] bg-white text-black rounded-lg px-2 py-1"
           />
         </div>
 
-        {/* Target/Start Node Input (Searching/Graph Only, not Tree) */}
+        {isGraph && (
+          <div>
+            <label className="text-sm block opacity-70 mb-1">
+              Edges (u-v:w)
+            </label>
+            <input
+              value={edgeInput}
+              onChange={(e) => setEdgeInput(e.target.value)}
+              className="w-[150px] bg-white text-black rounded-lg px-2 py-1"
+              placeholder="1-2, 2-3:5"
+            />
+          </div>
+        )}
+
         {(isSearching || isGraph) && !isTree && (
-          <div className="flex flex-col text-[13px]">
-            <label className="opacity-80">
-                {isGraph ? "Start Node" : "Target"}
+          <div>
+            <label className="text-sm block opacity-70 mb-1">
+              Target / Start
             </label>
             <input
               type="number"
               value={userInputTarget}
               onChange={(e) => setUserInputTarget(e.target.value)}
-              className="w-[100px] px-2 py-1 text-center bg-white text-black rounded-lg shadow-sm mt-1"
+              className="w-[80px] bg-white text-black rounded-lg px-2 py-1"
             />
           </div>
         )}
 
-        {/* Random Size Input (Sorting/Tree Only) */}
-        {(!isSearching || isTree) && !isGraph && (
-          <div className="flex flex-col text-[13px]">
-            <label className="opacity-80">n (size)</label>
+        {isSorting && (
+          <div>
+            <label className="text-sm block opacity-70 mb-1">Size</label>
             <input
               type="number"
               value={inputSize}
               onChange={(e) => setInputSize(Number(e.target.value))}
-              className="w-[120px] px-2 py-1 text-center bg-white text-black rounded-lg shadow-sm mt-1"
+              className="w-[70px] bg-white text-black rounded-lg px-2 py-1"
             />
           </div>
         )}
       </div>
 
-      {/* --- Generate Button --- (Fixed onClick handler) */}
+      {/* GENERATE BUTTON — FIXED POSITION */}
       <button
-        className="px-6 py-2 bg-[#1b1b25] border border-white/20 text-white rounded-full font-mono text-[15px] hover:bg-white/10 transition shadow-md"
-        onClick={handleGenerate} 
+        onClick={handleGenerate}
+        className="px-6 py-2 bg-[#1b1b25] border border-white/20 text-white rounded-full hover:bg-[#22222e] shrink-0 transition-all"
       >
         Generate
       </button>
