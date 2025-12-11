@@ -4,9 +4,10 @@ export default function Graph() {
   const graphAlgos = [
     "Depth First Search",
     "Breadth First Search",
-    "Dijkstra’s Algorithm",
-    "Kruskal’s Algorithm",
-    "Prim’s Algorithm",
+    "Dijkstra's Algorithm",
+    "Kruskal's Algorithm",
+     "Prim's Algorithm",
+
   ];
 
   return (

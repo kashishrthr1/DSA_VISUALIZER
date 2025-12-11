@@ -25,14 +25,22 @@ const algoTypes = [
   {
     id: "tree",
     name: "Tree",
-    algorithms: [
-      "Binary Tree Traversal",
-      "BST Insertion",
-      "AVL Insertion",
-      "Trie Insertion", // New
-      "Segment Tree Build", // New
-    ],
+    algorithms: ["Binary Tree Traversal",
+    "Binary Search Tree",
+    "AVL Tree",
+    "Segment Tree",
+    "Trie",],
   },
+   {
+    id: "graph",
+    name: "Graph",
+    algorithms: [ "Depth First Search",
+    "Breadth First Search",
+    "Dijkstra's Algorithm",
+"Kruskal's Algorithm",
+"Prim's Algorithm",
+]
+  } 
 ];
 
 export default function NavMain({
