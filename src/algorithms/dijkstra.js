@@ -21,17 +21,18 @@ class PriorityQueue {
 
 /**
  * Implements Dijkstra's Algorithm and generates visualization steps.
- * @param {number[]} nodesArray - Array of node values.
- * @param {string} edgesString - String of edges (u-v:w).
- * @param {number} startNodeValue - The value of the starting node.
- * @returns {Object[]} An array of visualization steps.
  */
 export function dijkstra(nodesArray, edgesString, startNodeValue) {
     const steps = [];
     const { graphMap } = generateGraphFromInput(nodesArray, edgesString);
-    
-    // Mutable copies (dist stores the shortest distance found so far)
-    const nodes = Object.values(graphMap).map(n => ({ ...n, dist: Infinity, prev: null }));
+
+    const nodes = Object.values(graphMap).map(n => ({
+        ...n,
+        dist: Infinity,
+        prev: null,
+        status: "unvisited",
+    }));
+
     const edges = generateGraphFromInput(nodesArray, edgesString).edges.map(e => ({ ...e }));
 
     const startNode = nodes.find(n => n.value === startNodeValue);
@@ -39,87 +40,95 @@ export function dijkstra(nodesArray, edgesString, startNodeValue) {
 
     const nodeMap = new Map(nodes.map(n => [n.id, n]));
 
-    function record() {
-        // Highlight shortest path edges based on the 'prev' pointer
+    function record(line = null) {
         const pathEdges = new Set();
         nodes.forEach(n => {
-            if (n.prev) {
-                const edgeKey = `${n.prev.id}-${n.id}`;
-                pathEdges.add(edgeKey);
-            }
+            if (n.prev) pathEdges.add(`${n.prev.id}-${n.id}`);
         });
 
-        // Update status for edges on the shortest path tree
-        const stepEdges = edges.map(e => {
-            const isPathEdge = pathEdges.has(`${e.from}-${e.to}`);
-            return {
-                ...e,
-                status: isPathEdge ? 'shortestPath' : (e.status === 'shortestPath' ? 'shortestPath' : e.status)
-            };
-        });
-        
-        const step = {
-            bars: nodesArray, 
+        const stepEdges = edges.map(e => ({
+            ...e,
+            status: pathEdges.has(`${e.from}-${e.to}`)
+                ? "shortestPath"
+                : e.status,
+        }));
+
+        steps.push({
+            bars: nodesArray,
             nodes: nodes.map(n => ({ ...n })),
-            edges: stepEdges, // Use stepEdges to reflect shortest path
+            edges: stepEdges,
             root: null,
-        };
-        steps.push(step);
+            line,
+        });
     }
 
-    // --- Dijkstra's Implementation ---
+    // --- Dijkstra's Implementation (with line numbers) ---
 
-    const pq = new PriorityQueue();
-    
-    startNode.dist = 0;
-    pq.enqueue(startNode, 0);
-    startNode.status = "start";
-    record();
-    startNode.status = "unvisited";
+    const pq = new PriorityQueue();          // line 3
+record(3);
 
-    while (!pq.isEmpty()) {
-        const { element: u, priority: currentDist } = pq.dequeue();
-        
-        const currentU = nodeMap.get(u.id);
+startNode.dist = 0;                      // line 4
+record(4);
 
-        if (currentU.status === "visited") continue;
+pq.enqueue(startNode, 0);                // line 5
+record(5);
 
-        currentU.status = "current";
-        record();
+while (!pq.isEmpty()) {                  // line 7
+    record(7);
 
-        // Mark as visited (distance finalized)
-        currentU.status = "visited";
+    const { element: u } = pq.dequeue(); // line 8
+    record(8);
 
-        // Examine adjacent edges (using graphMap)
-        const adjList = graphMap[u.value].adj;
+    const currentU = nodeMap.get(u.id);
 
-        for (const { node: v_ref, edge: edge_ref } of adjList) {
-            const v = nodeMap.get(v_ref.id);
-            const currentEdge = edges.find(e => e.id === edge_ref.id);
-            
-            if (currentU.dist + edge_ref.weight < v.dist) {
-                // Relaxation: Found a shorter path!
-                if (currentEdge) currentEdge.status = "visiting";
-                record();
+    if (currentU.status === "visited") { // line 9
+        record(9);
+        continue;
+    }
 
-                v.dist = currentU.dist + edge_ref.weight;
-                v.prev = currentU; // Update parent pointer for shortest path tracing
-                v.status = "candidate"; // Mark as having a new, better distance
-                pq.enqueue(v, v.dist);
-                
-                if (currentEdge) currentEdge.status = "processed";
-                record();
-            } else if (currentEdge) {
-                // Not a shorter path
-                currentEdge.status = "rejected";
-                record();
-                currentEdge.status = "processed";
-            }
+    currentU.status = "visited";         // line 11
+    record(11);
+
+    const adjList = graphMap[u.value].adj;
+
+    for (const { node: v_ref, edge: edge_ref } of adjList) { // line 13
+        record(13);
+
+        const v = nodeMap.get(v_ref.id);
+        const currentEdge = edges.find(e => e.id === edge_ref.id);
+
+        if (currentU.dist + edge_ref.weight < v.dist) { // line 14
+            record(14);
+
+            if (currentEdge) currentEdge.status = "visiting"; // line 16
+            record(15);
+
+            v.dist = currentU.dist + edge_ref.weight; // line 18
+            record(17);
+
+            v.prev = currentU;                        // line 19
+            record(18);
+
+            v.status = "candidate";                   // line 20
+            record(19);
+
+            pq.enqueue(v, v.dist);                    // line 21
+            record(20);
+
+            if (currentEdge) currentEdge.status = "processed"; // line 23
+            record(22);
+        } else {
+            if (currentEdge) currentEdge.status = "rejected";  // line 25
+            record(24);
+
+            if (currentEdge) currentEdge.status = "processed"; // line 26
+            record(25);
         }
-        
-        record(); // Final state after processing U
     }
-    
+}
+
+
+
     return steps;
 }
 
@@ -134,13 +143,10 @@ function Dijkstras(startNode) {
     if (u.status === 'visited') continue;
     
     u.status = 'visited'; // Distance finalized
-    // Record step (Node u finalized)
 
     for (const { node: v, edge } of u.adj) {
       if (u.dist + edge.weight < v.dist) {
-        // Relaxation: Found a shorter path
         edge.status = 'visiting';
-        // Record step (Edge u->v is active)
         
         v.dist = u.dist + edge.weight;
         v.prev = u;
@@ -150,7 +156,6 @@ function Dijkstras(startNode) {
         edge.status = 'processed';
       } else {
         edge.status = 'rejected';
-        // Record step (Path not shorter, rejected)
         edge.status = 'processed';
       }
     }

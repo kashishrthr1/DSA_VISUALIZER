@@ -90,7 +90,8 @@ export default function MainPage() {
   const initialArr = [1, 69, 10, 82, 11, 25, 8, 14, 2, 51];
 
   const location = useLocation();
-  const [selectedAlgorithm, setSelectedAlgorithm] = useState("Select Algorithm");
+  const [selectedAlgorithm, setSelectedAlgorithm] =
+    useState("Select Algorithm");
   const [selectedType, setSelectedType] = useState("Select Type");
   const [isPlaying, setPlaying] = useState(false);
   // The 'bars' state is overloaded to handle Bars, Search, Tree, and Graph data
@@ -109,50 +110,43 @@ export default function MainPage() {
   const [speed, setSpeed] = useState(1);
   const [targetValue, setTargetValue] = useState(11);
 
-  const selectedAlgorithmKey =
-    algoCodeKeyMap[selectedAlgorithm] || null;
+  const selectedAlgorithmKey = algoCodeKeyMap[selectedAlgorithm] || null;
 
   // Effect 1: Handle navigation and set selectedType
   useEffect(() => {
-  if (location.state?.selectedTitle) {
-    const algoTitle = location.state.selectedTitle;
-    setSelectedAlgorithm(algoTitle);
+    if (location.state?.selectedTitle) {
+      const algoTitle = location.state.selectedTitle;
+      setSelectedAlgorithm(algoTitle);
 
-    const titleLower = algoTitle.toLowerCase();
+      const titleLower = algoTitle.toLowerCase();
 
-    // Graph first
-    if (
-      titleLower.includes("dijkstra") ||
-      titleLower.includes("kruskal") ||
-      titleLower.includes("prims") ||
-      titleLower.includes("depth first") ||
-      titleLower.includes("breadth first")
-    ) {
-      setSelectedType("Graph");
+      // Graph first
+      if (
+        titleLower.includes("dijkstra") ||
+        titleLower.includes("kruskal") ||
+        titleLower.includes("prims") ||
+        titleLower.includes("depth first") ||
+        titleLower.includes("breadth first")
+      ) {
+        setSelectedType("Graph");
+      } else if (titleLower.includes("sort")) {
+        setSelectedType("Sorting");
+      } else if (titleLower.includes("search")) {
+        setSelectedType("Searching");
+      } else if (
+        titleLower.includes("tree") ||
+        titleLower.includes("bst") ||
+        titleLower.includes("avl") ||
+        titleLower.includes("trie")
+      ) {
+        setSelectedType("Tree");
+      } else if (titleLower.includes("dynamic")) {
+        setSelectedType("Dynamic Programming");
+      } else {
+        setSelectedType("Other");
+      }
     }
-    else if (titleLower.includes("sort")) {
-      setSelectedType("Sorting");
-    }
-    else if (titleLower.includes("search")) {
-      setSelectedType("Searching");
-    }
-    else if (
-      titleLower.includes("tree") ||
-      titleLower.includes("bst") ||
-      titleLower.includes("avl") ||
-      titleLower.includes("trie")
-    ) {
-      setSelectedType("Tree");
-    }
-    else if (titleLower.includes("dynamic")) {
-      setSelectedType("Dynamic Programming");
-    }
-    else {
-      setSelectedType("Other");
-    }
-  }
-}, [location.state]);
-
+  }, [location.state]);
 
   // Effect 2: Playback interval
   useEffect(() => {
@@ -184,7 +178,14 @@ export default function MainPage() {
     setCurrentStep(0);
     setPlaying(false);
     // Reset all data structures
-    setBars({ bars: initialArr, comparing: [], swapping: [], root: null, nodes: [], edges: [] }); 
+    setBars({
+      bars: initialArr,
+      comparing: [],
+      swapping: [],
+      root: null,
+      nodes: [],
+      edges: [],
+    });
   }, [selectedAlgorithmKey]);
 
   const currentLine = steps[currentStep]?.line || 0;
@@ -201,7 +202,6 @@ export default function MainPage() {
 
       <div className="flex-grow flex flex-col p-4 pt-8">
         <div className="flex justify-start items-start w-full gap-4 max-h-[450px]">
-          
           <div className="w-[200px]">
             <ColorLegend
               selectedAlgorithm={selectedAlgorithm}
@@ -241,7 +241,7 @@ export default function MainPage() {
           {/* --- NEW GRAPH DISPLAY LOGIC --- */}
           {selectedType === "Graph" && (
             <div className="flex-1 min-w-0">
-              <GraphDisplay 
+              <GraphDisplay
                 graphState={bars}
                 selectedAlgorithm={selectedAlgorithm}
               />

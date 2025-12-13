@@ -19,87 +19,95 @@ class DSU {
         const rootJ = this.find(j);
         if (rootI !== rootJ) {
             this.parent.set(rootI, rootJ);
-            return true; // Union successful (they were in different sets)
+            return true;
         }
-        return false; // Already in the same set (would create a cycle)
+        return false;
     }
 }
 
 /**
  * Implements Kruskal's Algorithm and generates visualization steps.
- * @param {number[]} nodesArray - Array of node values.
- * @param {string} edgesString - String of edges (u-v:w).
- * @returns {Object[]} An array of visualization steps.
  */
 export function kruskal(nodesArray, edgesString) {
     const steps = [];
-    const { nodes: initialNodes, edges: initialEdges } = generateGraphFromInput(nodesArray, edgesString);
-    
-    // Mutable copies
+    const { nodes: initialNodes, edges: initialEdges } =
+        generateGraphFromInput(nodesArray, edgesString);
+
     const nodes = initialNodes.map(n => ({ ...n, status: "unvisited" }));
     const edges = initialEdges.map(e => ({ ...e }));
 
     const nodeMap = new Map(nodes.map(n => [n.id, n]));
-    
-    function record() {
-        const step = {
-            bars: nodesArray, 
+
+    function record(line = null) {
+        steps.push({
+            bars: nodesArray,
             nodes: nodes.map(n => ({ ...n })),
             edges: edges.map(e => ({ ...e })),
             root: null,
-        };
-        steps.push(step);
+            line,
+        });
     }
 
-    // --- Kruskal's Implementation ---
+    // --- Kruskal's Implementation (with line numbers) ---
 
-    // 1. Sort all unique edges by weight
     const uniqueEdges = edges
-        .filter(e => !e.id.endsWith("-r")) // Only keep one direction for undirected edges
-        .sort((a, b) => a.weight - b.weight);
+        .filter(e => !e.id.endsWith("-r"))
+        .sort((a, b) => a.weight - b.weight); // line 3
+    record(3);
 
-    const dsu = new DSU(nodes);
-    
+    const dsu = new DSU(nodes);              // line 4
+    record(4);
+
     // Initial state
     record();
 
-    // 2. Iterate through sorted edges
-    for (const edge of uniqueEdges) {
-        const u = edge.from;
-        const v = edge.to;
-        
-        // Find all representations of this edge (forward and reverse)
+    for (const edge of uniqueEdges) {        // line 7
+        record(7);
+
+        const u = edge.from;                 // line 8
+        record(8);
+
+        const v = edge.to;                   // line 9
+        record(9);
+
         const forwardEdge = edges.find(e => e.id === edge.id);
-        const reverseEdge = edges.find(e => e.id === `${v}-${u}-${edge.id.split('-').pop()}-r`);
-        
+        const reverseEdge = edges.find(
+            e => e.id === `${v}-${u}-${edge.id.split("-").pop()}-r`
+        );
+
         if (forwardEdge) forwardEdge.status = "current";
         if (reverseEdge) reverseEdge.status = "current";
         nodeMap.get(u).status = "current";
-        nodeMap.get(v).status = "current";
-        record();
+        nodeMap.get(v).status = "current";   // line 11
+        record(11);
 
-        // Check for cycle using DSU
-        if (dsu.union(u, v)) {
-            // No cycle: include edge in MST
+        if (dsu.find(u) !== dsu.find(v)) {   // line 13
+            record(13);
+
+            dsu.union(u, v);                 // line 14
+            record(14);
+
             if (forwardEdge) forwardEdge.status = "mst";
-            if (reverseEdge) reverseEdge.status = "mst";
+            if (reverseEdge) reverseEdge.status = "mst"; // line 16
+            record(16);
         } else {
-            // Cycle: reject edge
             if (forwardEdge) forwardEdge.status = "rejected";
-            if (reverseEdge) reverseEdge.status = "rejected";
+            if (reverseEdge) reverseEdge.status = "rejected"; // line 18
+            record(18);
         }
-        
-        // Mark nodes as processed
+
         nodeMap.get(u).status = "visited";
         nodeMap.get(v).status = "visited";
-        record();
-        
-        // Mark edge status as final processed
-        if (forwardEdge) forwardEdge.status = forwardEdge.status === "mst" ? "mst" : "processed";
-        if (reverseEdge) reverseEdge.status = reverseEdge.status === "mst" ? "mst" : "processed";
-        record();
+
+        if (forwardEdge)
+            forwardEdge.status =
+                forwardEdge.status === "mst" ? "mst" : "processed";
+        if (reverseEdge)
+            reverseEdge.status =
+                reverseEdge.status === "mst" ? "mst" : "processed"; // line 20
+        record(20);
     }
-    
+
     return steps;
 }
 
@@ -114,20 +122,15 @@ function Kruskals(nodes, edges) {
     const v = edge.to;
     
     edge.status = 'current';
-    // Record step (Edge u-v is being checked)
 
     if (dsu.find(u) !== dsu.find(v)) {
-      // No cycle: include edge
       dsu.union(u, v);
       mst.push(edge);
       edge.status = 'mst';
-      // Record step (Edge added to MST)
     } else {
-      // Cycle: reject edge
       edge.status = 'rejected';
-      // Record step (Edge rejected due to cycle)
     }
-    edge.status = 'processed'; // or 'mst'
+    edge.status = 'processed';
   }
   return mst;
 }

@@ -1,5 +1,3 @@
-// src/algorithms/dfs.js
-
 import { generateGraphFromInput } from "../utils/generateGraphFromInput.js";
 
 /**
@@ -16,19 +14,27 @@ export function dfs(nodesArray, edgesString, startNodeValue) {
     const initialGraphState = generateGraphFromInput(nodesArray, edgesString);
     let nodesMap = {};
     initialGraphState.nodes.forEach(n => {
-        nodesMap[n.id] = { ...n, adj: [] }; // Create a mutable map for algorithm
+        nodesMap[n.id] = { ...n, adj: [], status: "unvisited" }; // Ensure initial status is 'unvisited'
     });
     
     // Re-populate adj list with references to the mutable nodesMap objects
     initialGraphState.edges.forEach(e => {
         if (nodesMap[e.from] && nodesMap[e.to]) {
-            nodesMap[e.from].adj.push({ node: nodesMap[e.to], edge: e });
+            // Note: Since node references are used, 'adj' holds the mutable node objects
+            const v_ref = nodesMap[e.to];
+            const edge_ref = initialGraphState.edges.find(ie => ie.id === e.id);
+            if (edge_ref) {
+                 nodesMap[e.from].adj.push({ node: v_ref, edge: { ...edge_ref } }); // Use a copy of edge for mutation
+            }
         }
     });
 
-    const edges = initialGraphState.edges.map(e => ({ ...e })); // Mutable copy for status update
+    // Extract mutable edges list from the map's adjacency structure for state recording
+    // This is complex due to the graph generation utility; we'll use a simplified mutable edges array
+    const edges = initialGraphState.edges.map(e => ({ ...e }));
+    const edgeIdMap = new Map(edges.map(e => [e.id, e]));
 
-    const startNode = nodesMap[startNodeValue];
+    const startNode = Object.values(nodesMap).find(n => n.value === startNodeValue);
     if (!startNode) {
         console.warn("Invalid start node for DFS:", startNodeValue);
         return [];
@@ -37,10 +43,11 @@ export function dfs(nodesArray, edgesString, startNodeValue) {
     // Find the actual start node and set its status
     startNode.status = "start";
     
-    function record() {
+    // FIX: Added 'line' parameter
+    function record(line = null) {
         // Clone the current state of nodes and edges for the step
         const step = {
-            bars: nodesArray, // Not used for graph, but for compatibility
+            bars: nodesArray, 
             nodes: Object.values(nodesMap).map(n => ({ 
                 id: n.id, 
                 value: n.value, 
@@ -50,39 +57,46 @@ export function dfs(nodesArray, edgesString, startNodeValue) {
             })),
             edges: edges.map(e => ({ ...e })),
             root: null,
-            // Add a meaningful message for the current step (optional)
-            message: `Visiting node ${startNode.value}...`
+            line: line, // LINE FIX
         };
         steps.push(step);
     }
 
     function DFS_recursive(u) {
-        u.status = "visiting"; // Mark current node as visiting
-        record(); // State 1: Visiting 'u'
 
-        // Iterate through neighbors
-        for (const { node: v, edge } of u.adj) {
-            // Only process unvisited neighbors
+        // line 4
+        u.status = "visiting";
+        record(6);
+    
+        for (const { node: v, edge: initialEdge } of u.adj) {
+            // line 6
+            record(9);
+    
+            const mutableEdge = edgeIdMap.get(initialEdge.id);
+    
+            // line 7
+            record(10);
             if (v.status === "unvisited") {
-                edge.status = "current"; // Mark the edge being traversed
-                record(); // State 2: Highlighting edge (u -> v)
-                
+    
+                // line 8
+                if (mutableEdge) mutableEdge.status = "current";
+                record(11);
+    
+                // line 10
                 DFS_recursive(v);
-                
-                // After DFS returns from v, mark edge as processed/done
-                edge.status = "processed"; 
-                // We don't need to record here unless it's a specific requirement
-            } else if (v.status === "visited" && edge.status === "unprocessed") {
-                // If it's a back edge to an already visited node (optional for visualization)
-                edge.status = "rejected";
-                // record(); 
-                edge.status = "unprocessed"; // Revert to prevent clutter
+                record(14);
+    
+                // line 12
+                if (mutableEdge) mutableEdge.status = "processed";
+                record(16);
             }
         }
-
-        u.status = "visited"; // Mark node as fully visited/finished
-        record(); // State 3: Node 'u' is fully visited
+    
+        // line 16
+        u.status = "visited";
+        record(20);
     }
+    
     
     // Initial state record (all unvisited)
     record();
@@ -102,17 +116,17 @@ function DFS(u) {
   // Record step
 
   for (const { node: v, edge } of u.adj) { // line 7
-    if (v.status === 'unvisited') {
+    if (v.status === 'unvisited') { // line 8
       edge.status = 'current';
-      // Record step
+      // Record step // line 10
       
-      DFS(v); // line 9
+      DFS(v); // line 12
       
-      edge.status = 'processed';
+      edge.status = 'processed'; // line 14
     }
   }
 
-  u.status = 'visited'; // line 11
+  u.status = 'visited'; // line 17
   // Record final step
 }
 `;

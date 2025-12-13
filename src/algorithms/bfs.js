@@ -43,51 +43,54 @@ export function bfs(nodesArray, edgesString, startNodeValue) {
 
     // --- BFS Implementation ---
     
-    // 1. Initialization
-    const queue = [];
-    
-    startNode.status = "start";
-    record(); // Initial state: start node highlighted
-    
-    startNode.status = "visiting";
-    queue.push(startNode);
-    record();
+    // Initialization
+const queue = [];
 
-    // 2. Main Loop
-    while (queue.length > 0) {
-        const u = queue.shift(); // Dequeue
-        u.status = "current"; // Node being processed
-        record();
-        
-        // Find neighbors from the adjacency list (stored in graphMap)
-        const adjList = graphMap[u.value].adj;
+startNode.status = "visiting";   // line 3
+record(3);
 
-        for (const { node: v_ref, edge: edge_ref } of adjList) {
-            // Find the current mutable node and edge objects by ID
-            const v = nodeMap.get(v_ref.id);
-            const currentEdge = edges.find(e => e.id === edge_ref.id);
+queue.push(startNode);           // line 4
+record(4);
 
-            // Check if the neighbor has been visited (status is not default 'unvisited')
-            if (v.status === "unvisited") {
-                if (currentEdge) currentEdge.status = "current"; // Edge is active
-                record();
+// Main loop
+while (queue.length > 0) {       // line 6
+    record(6);
 
-                v.status = "visiting"; // Mark as visiting
-                queue.push(v);
-                
-                if (currentEdge) currentEdge.status = "processed"; // Edge processed
-                record();
-            } else if (currentEdge) {
-                // Mark edge as rejected/checked if already visited, for visualization
-                currentEdge.status = "rejected"; 
-                record();
-                currentEdge.status = "processed";
-            }
+    const u = queue.shift();     // line 7
+    record(7);
+
+    u.status = "current";        // line 8
+    record(8);
+
+    const adjList = graphMap[u.value].adj;
+
+    for (const { node: v_ref, edge: edge_ref } of adjList) { // line 10
+        record(10);
+
+        const v = nodeMap.get(v_ref.id);
+        const currentEdge = edges.find(e => e.id === edge_ref.id);
+
+        if (v.status === "unvisited") {   // line 11
+            record(11);
+
+            if (currentEdge) currentEdge.status = "current"; // line 12
+            record(12);
+
+            v.status = "visiting";         // line 14
+            record(14);
+
+            queue.push(v);                 // line 15
+            record(15);
+
+            if (currentEdge) currentEdge.status = "processed"; // line 17
+            record(17);
         }
-        
-        u.status = "visited"; // Node is finished
-        record();
     }
+
+    u.status = "visited";        // line 21
+    record(21);
+}
+
     
     return steps;
 }

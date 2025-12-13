@@ -4,6 +4,13 @@ import "../App.css";
 import generateArray from "../utils/generateArray.js";
 import { generateGraphFromInput } from "../utils/generateGraphFromInput.js";
 import React, { useState, useEffect } from "react";
+import {
+  FaPlay,
+  FaPause,
+  FaRotateLeft,
+  FaBackwardStep,
+  FaForwardStep,
+} from "react-icons/fa6";
 
 // SORTS
 import { selectionSort } from "../algorithms/selectionSort.js";
@@ -220,112 +227,125 @@ export default function Controler({
   };
 
   return (
-    <div className="w-full h-[120px] bg-[rgba(18,18,24,0.85)] backdrop-blur-xl rounded-3xl border border-white/10 shadow-xl px-6 flex items-center justify-between space-x-6 overflow-hidden">
-      {/* LEFT CONTROLS */}
-      <div className="flex items-center space-x-3 text-white shrink-0">
-        <button
-          onClick={handlePlayPause}
-          className="w-10 h-10 hover:bg-white/10 rounded-xl flex items-center justify-center"
-        >
-          {isPlaying ? "❚❚" : "▶"}
-        </button>
+    // Outer wrapper for centering
+    <div className="w-full flex justify-center">
+      {/* The actual control bar, which now hugs its content */}
+      <div className="h-[120px] bg-[rgba(18,18,24,0.85)] backdrop-blur-xl rounded-3xl border border-white/10 shadow-xl px-6 flex items-center justify-center space-x-8 max-w-full lg:max-w-fit">
+        {/* LEFT CONTROLS */}
+        <div className="flex items-center space-x-2 text-white shrink-0">
+          <button
+            onClick={handlePlayPause}
+            className="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors"
+          >
+            {isPlaying ? <FaPause /> : <FaPlay />}
+          </button>
 
-        <button
-          onClick={() => setCurrentStep(0)}
-          className="w-9 h-9 hover:bg-white/10 rounded-xl flex items-center justify-center"
-        >
-          ⟳
-        </button>
+          <button
+            onClick={() => setCurrentStep(0)}
+            className="w-9 h-9 hover:bg-white/10 rounded-xl flex items-center justify-center transition-colors"
+          >
+            <FaRotateLeft />
+          </button>
 
-        <button
-          onClick={() => setCurrentStep((p) => Math.max(0, p - 1))}
-          className="w-9 h-9 hover:bg-white/10 rounded-xl flex items-center justify-center"
-        >
-          ⟸
-        </button>
+          <button
+            onClick={() => setCurrentStep((p) => Math.max(0, p - 1))}
+            className="w-9 h-9 hover:bg-white/10 rounded-xl flex items-center justify-center transition-colors"
+          >
+            <FaBackwardStep />
+          </button>
 
-        <button
-          onClick={() =>
-            setCurrentStep((p) => Math.min(steps.length - 1, p + 1))
-          }
-          className="w-9 h-9 hover:bg-white/10 rounded-xl flex items-center justify-center"
-        >
-          ⟹
-        </button>
-      </div>
+          <button
+            onClick={() =>
+              setCurrentStep((p) => Math.min(steps.length - 1, p + 1))
+            }
+            className="w-9 h-9 hover:bg-white/10 rounded-xl flex items-center justify-center transition-colors"
+          >
+            <FaForwardStep />
+          </button>
+        </div>
 
-      {/* SPEED SLIDER */}
-      <div className="flex items-center space-x-3 text-white flex-1 max-w-[260px]">
-        <span>{speed}x</span>
-        <input
-          type="range"
-          min="0"
-          max={speedOptions.length - 1}
-          value={speedOptions.indexOf(speed)}
-          onChange={(e) => setSpeed(speedOptions[e.target.value])}
-          className="w-full accent-white"
-        />
-      </div>
-
-      {/* INPUTS */}
-      <div className="flex items-center space-x-5 text-white font-mono flex-wrap">
-        <div>
-          <label className="text-sm block opacity-70 mb-1">Nodes</label>
+        {/* SPEED SLIDER */}
+        <div className="flex items-center space-x-3 text-white shrink-0 w-[180px]">
+          {/* **Change:** Removed bolding asterisks */}
+          <span className="text-sm shrink-0">Speed: {speed}x</span>
           <input
-            value={userInputArray}
-            onChange={(e) => setUserInputArray(e.target.value)}
-            className="w-[150px] bg-white text-black rounded-lg px-2 py-1"
+            type="range"
+            min="0"
+            max={speedOptions.length - 1}
+            value={speedOptions.indexOf(speed)}
+            onChange={(e) => setSpeed(speedOptions[e.target.value])}
+            className="w-full accent-white"
           />
         </div>
 
-        {isGraph && (
+        {/* INPUTS */}
+        <div className="flex items-center space-x-4 text-white font-mono shrink-0">
+          {/* Nodes Input (Always present) */}
           <div>
-            <label className="text-sm block opacity-70 mb-1">
-              Edges (u-v:w)
-            </label>
+            <label className="text-xs block opacity-70 mb-1">Nodes</label>
             <input
-              value={edgeInput}
-              onChange={(e) => setEdgeInput(e.target.value)}
-              className="w-[150px] bg-white text-black rounded-lg px-2 py-1"
-              placeholder="1-2, 2-3:5"
+              value={userInputArray}
+              onChange={(e) => setUserInputArray(e.target.value)}
+              className="w-[150px] bg-white text-black rounded-lg px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g., 5, 2, 8, 1"
             />
           </div>
-        )}
 
-        {(isSearching || isGraph) && !isTree && (
-          <div>
-            <label className="text-sm block opacity-70 mb-1">
-              Target / Start
-            </label>
-            <input
-              type="number"
-              value={userInputTarget}
-              onChange={(e) => setUserInputTarget(e.target.value)}
-              className="w-[80px] bg-white text-black rounded-lg px-2 py-1"
-            />
-          </div>
-        )}
+          {/* Edges Input (Graph only) */}
+          {isGraph && (
+            <div>
+              <label className="text-xs block opacity-70 mb-1">
+                Edges (u-v:w)
+              </label>
+              <input
+                value={edgeInput}
+                onChange={(e) => setEdgeInput(e.target.value)}
+                className="w-[120px] bg-white text-black rounded-lg px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500"
+                placeholder="1-2:3, 2-3:5"
+              />
+            </div>
+          )}
 
-        {isSorting && (
-          <div>
-            <label className="text-sm block opacity-70 mb-1">Size</label>
-            <input
-              type="number"
-              value={inputSize}
-              onChange={(e) => setInputSize(Number(e.target.value))}
-              className="w-[70px] bg-white text-black rounded-lg px-2 py-1"
-            />
-          </div>
-        )}
+          {/* Target / Start Input (Search or Graph, but not Tree) */}
+          {(isSearching || isGraph) && !isTree && (
+            <div>
+              <label className="text-xs block opacity-70 mb-1">
+                Target / Start
+              </label>
+              <input
+                type="number"
+                value={userInputTarget}
+                onChange={(e) => setUserInputTarget(e.target.value)}
+                className="w-[80px] bg-white text-black rounded-lg px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500"
+                placeholder="1"
+              />
+            </div>
+          )}
+
+          {/* Size Input (Sorting only) */}
+          {isSorting && (
+            <div>
+              <label className="text-xs block opacity-70 mb-1">Size</label>
+              <input
+                type="number"
+                value={inputSize}
+                onChange={(e) => setInputSize(Number(e.target.value))}
+                className="w-[70px] bg-white text-black rounded-lg px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500"
+                placeholder="50"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* GENERATE BUTTON */}
+        <button
+          onClick={handleGenerate}
+          // **Change:** Reverted background styling to the original, darker theme
+          className="px-6 py-2 bg-[#1b1b25] border border-white/20 text-white rounded-full hover:bg-[#22222e] shrink-0 transition-all text-sm font-semibold shadow-xl"
+        >
+          Generate
+        </button>
       </div>
-
-      {/* GENERATE BUTTON — FIXED POSITION */}
-      <button
-        onClick={handleGenerate}
-        className="px-6 py-2 bg-[#1b1b25] border border-white/20 text-white rounded-full hover:bg-[#22222e] shrink-0 transition-all"
-      >
-        Generate
-      </button>
     </div>
   );
 }

@@ -24,7 +24,7 @@ export default function ColorLegend({ selectedAlgorithm, selectedType }) {
   const treeItems = [
     { color: "bg-[#ffb86b]", label: "Visiting Node" },
     { color: "bg-[#22C55E]", label: "Processed" },
-    { color: "bg-[#ff6b6b]", label: "Comparison" },
+    { color: "bg-[#ff6b6b]", label: "Not Found" },
     { color: "bg-gray-700", label: "Unvisited" },
   ];
 
@@ -32,10 +32,10 @@ export default function ColorLegend({ selectedAlgorithm, selectedType }) {
 
   // For BFS/DFS Traversal
   const traversalItems = [
-    { color: "bg-[#ffb86b]", label: "Visiting (Queue/Stack)" },
+    { color: "bg-[#ffb86b]", label: "Visiting " },
     { color: "bg-[#22C55E]", label: "Visited/Processed" },
     { color: "bg-[#FF6B6B]", label: "Current Edge" },
-    { color: "bg-gray-700", label: "Unvisited" },
+    { color: "bg-white", label: "Unvisited" },
   ];
 
   // For Dijkstra/Kruskal/Prim's (MST/Shortest Path)
@@ -43,7 +43,7 @@ export default function ColorLegend({ selectedAlgorithm, selectedType }) {
     { color: "bg-[#ffb86b]", label: "Current Node/Edge (Min)" },
     { color: "bg-[#6B8EFF]", label: "Shortest Path Found" },
     { color: "bg-[#22C55E]", label: "Part of MST/Final Path" },
-    { color: "bg-gray-700", label: "Unprocessed" },
+    { color: "bg-white", label: "Unprocessed" },
   ];
   // -------------------------
 
@@ -62,7 +62,9 @@ export default function ColorLegend({ selectedAlgorithm, selectedType }) {
     </ul>
   );
 
-  const isTraversal = ["Breadth First Search", "Depth First Search"].includes(selectedAlgorithm);
+  const isTraversal = ["Breadth First Search", "Depth First Search"].includes(
+    selectedAlgorithm
+  );
 
   return (
     <div className="w-full border border-black rounded-xl p-4 bg-white shadow">
@@ -83,12 +85,8 @@ export default function ColorLegend({ selectedAlgorithm, selectedType }) {
       {selectedType === "Tree" && renderList(treeItems)}
 
       {/* --- NEW GRAPH RENDERING --- */}
-      {selectedType === "Graph" && 
-        (isTraversal
-            ? renderList(traversalItems)
-            : renderList(mstSptItems)
-        )
-      }
+      {selectedType === "Graph" &&
+        (isTraversal ? renderList(traversalItems) : renderList(mstSptItems))}
       {/* --------------------------- */}
     </div>
   );

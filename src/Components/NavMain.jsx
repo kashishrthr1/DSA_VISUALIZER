@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import DropDown from "./DropDown";
 import { useState, useEffect } from "react";
+import logo from "../assets/logo2.svg";
 
 // Constant algo types
 const algoTypes = [
@@ -25,22 +26,25 @@ const algoTypes = [
   {
     id: "tree",
     name: "Tree",
-    algorithms: ["Binary Tree Traversal",
-    "Binary Search Tree",
-    "AVL Tree",
-    "Segment Tree",
-    "Trie",],
+    algorithms: [
+      "Binary Tree Traversal",
+      "Binary Search Tree",
+      "AVL Tree",
+      "Segment Tree",
+      "Trie",
+    ],
   },
-   {
+  {
     id: "graph",
     name: "Graph",
-    algorithms: [ "Depth First Search",
-    "Breadth First Search",
-    "Dijkstra's Algorithm",
-"Kruskal's Algorithm",
-"Prim's Algorithm",
-]
-  } 
+    algorithms: [
+      "Depth First Search",
+      "Breadth First Search",
+      "Dijkstra's Algorithm",
+      "Kruskal's Algorithm",
+      "Prim's Algorithm",
+    ],
+  },
 ];
 
 export default function NavMain({
@@ -72,9 +76,15 @@ export default function NavMain({
   return (
     <nav className="w-full bg-[#121218] flex items-center px-4 sm:px-6 md:px-8 h-16 sm:h-20">
       {/* Left side - Logo */}
-      <div className="text-white font-['IBM_Plex_Mono'] text-lg sm:text-xl md:text-2xl lg:text-[29px] border-r border-white pr-4 sm:pr-6 md:pr-8">
-        Dsa Visualizer
-      </div>
+      <a
+        href="/"
+        className="flex items-center space-x-3 min-w-0 cursor-pointer"
+      >
+        <img src={logo} alt="logo" className="w-20 h-auto" />
+        <span className="text-white text-base sm:text-lg md:text-xl lg:text-4xl ml-4 font-mono truncate max-w-[120px] sm:max-w-[200px] md:max-w-[300px]">
+          Code Motion
+        </span>
+      </a>
 
       {/* Middle menu */}
       <div className="hidden md:flex items-center space-x-4 sm:space-x-8 lg:space-x-[80px] ml-4 sm:ml-8 md:ml-12 text-white font-['IBM_Plex_Mono'] text-sm sm:text-lg md:text-xl lg:text-[23px]">

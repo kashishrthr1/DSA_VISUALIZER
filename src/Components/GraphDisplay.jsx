@@ -2,6 +2,7 @@
 
 import React from "react";
 
+// Maintain fixed dimensions for consistent SVG scaling (Tailwind max-width will now apply to the content)
 const CONTAINER_WIDTH = 950;
 const CONTAINER_HEIGHT = 450;
 const PADDING = 40;
@@ -61,7 +62,7 @@ export default function GraphDisplay({ graphState, selectedAlgorithm }) {
     };
   };
 
-  // --- Styling Functions (Simplified for reliability) ---
+  // --- Styling Functions (Adapted for light theme) ---
 
   const isWeighted = ["Dijkstra's", "Kruskal's", "Prim's"].some((a) =>
     selectedAlgorithm.includes(a)
@@ -71,17 +72,17 @@ export default function GraphDisplay({ graphState, selectedAlgorithm }) {
   const getEdgeColor = (status) => {
     switch (status) {
       case "current":
-        return "#FF6B6B";
+        return "#FF6B6B"; // Red/Pink (Attention)
       case "processed":
       case "mst":
       case "shortestPath":
-        return "#0070F3";
+        return "#0070F3"; // Bright Blue (Finalized/Path)
       case "visiting":
-        return "#ffb86b";
+        return "#ffb86b"; // Orange (Exploring)
       case "rejected":
-        return "#C23616";
+        return "#C23616"; // Dark Red (Rejected/Strikethrough effect)
       default:
-        return "gray";
+        return "#4B5563"; // Dark Gray (Default/Unprocessed)
     }
   };
 
@@ -89,29 +90,47 @@ export default function GraphDisplay({ graphState, selectedAlgorithm }) {
     switch (status) {
       case "visited":
       case "final":
-        return "#22C55E";
+        return "#22C55E"; // Green (Found/Finalized)
       case "visiting":
       case "current":
-        return "#ffb86b";
+        return "#FFD700"; // Gold/Yellow (Current step/Exploring)
       case "start":
-        return "#FF00FF";
+        return "#FF00FF"; // Magenta (Start Node)
       default:
-        return "white";
+        return "white"; // White (Default/Unprocessed)
+    }
+  };
+
+  const getNodeStrokeColor = (status) => {
+    switch (status) {
+      case "visited":
+      case "final":
+      case "visiting":
+      case "current":
+      case "start":
+        return "black"; // Black stroke for active nodes
+      default:
+        return "#4B5563"; // Darker stroke for inactive nodes
     }
   };
 
   // --- Render Component ---
 
   return (
-    <div className="w-full h-full border border-black rounded-xl p-4 bg-gray-100 shadow flex flex-col">
-      <h3 className="text-xl font-bold mb-2 text-gray-800">
-        {selectedAlgorithm}
+    // **Color Change:** Light Theme Container (white background, subtle border/shadow)
+    <div className="w-full bg-white backdrop-blur-xl rounded-3xl border border-gray-200 shadow-lg p-6 flex flex-col h-full">
+      <h3 className="text-xl font-bold mb-3 text-gray-800">
+        {selectedAlgorithm} Visualization
       </h3>
+
       <div
-        className="flex-grow relative border border-dashed border-gray-400 rounded-lg overflow-hidden"
+        // **Color Change:** Light background for the SVG area, border back to dashed gray
+        className="relative mx-auto rounded-lg bg-gray-50 border border-dashed border-gray-300"
         style={{
           height: CONTAINER_HEIGHT + "px",
           width: CONTAINER_WIDTH + "px",
+          maxWidth: "100%",
+          maxHeight: "100%",
         }}
       >
         {nodes.length > 0 ? (
@@ -128,6 +147,7 @@ export default function GraphDisplay({ graphState, selectedAlgorithm }) {
                   markerHeight="6"
                   orient="auto-start-reverse"
                 >
+                  {/* **Color Change:** Arrow Fill (Dark Gray for contrast on light background) */}
                   <path d="M 0 0 L 10 5 L 0 10 z" fill="#4A4A4A" />
                 </marker>
               </defs>
@@ -138,7 +158,6 @@ export default function GraphDisplay({ graphState, selectedAlgorithm }) {
               const p1 = getNodePos(edge.from);
               const p2 = getNodePos(edge.to);
 
-              // Check if coordinates are valid before drawing the line
               if (!p1 || !p2) return null;
 
               const strokeColor = getEdgeColor(edge.status);
@@ -146,7 +165,6 @@ export default function GraphDisplay({ graphState, selectedAlgorithm }) {
               const midY = (p1.y + p2.y) / 2;
 
               return (
-                // FIX: Use the stable edge.id for the key
                 <React.Fragment key={edge.id || index}>
                   <line
                     x1={p1.x}
@@ -172,10 +190,12 @@ export default function GraphDisplay({ graphState, selectedAlgorithm }) {
                       y={midY - 5}
                       textAnchor="middle"
                       fontSize="11"
-                      fill="#4A4A4A"
+                      fill="#4A4A4A" // **Color Change:** Dark Gray text for contrast
                       style={{
+                        // **Color Change:** White background for text shadow to ensure legibility on edges
                         filter:
-                          "drop-shadow(0 0 1px white) drop-shadow(0 0 1px white)",
+                          "drop-shadow(0 0 2px white) drop-shadow(0 0 2px white)",
+                        fontWeight: "bold",
                       }}
                     >
                       {edge.weight}
@@ -190,13 +210,12 @@ export default function GraphDisplay({ graphState, selectedAlgorithm }) {
               const pos = getNodePos(node.id);
               if (!pos) return null;
 
-              // FIX: Use the stable node.id for the key
               return (
                 <g key={node.id} transform={`translate(${pos.x}, ${pos.y})`}>
                   <circle
                     r={NODE_RADIUS}
                     fill={getNodeFillColor(node.status)}
-                    stroke="black"
+                    stroke={getNodeStrokeColor(node.status)}
                     strokeWidth="2"
                   />
                   {/* Node Value Label */}
@@ -204,7 +223,7 @@ export default function GraphDisplay({ graphState, selectedAlgorithm }) {
                     textAnchor="middle"
                     dy=".3em"
                     fontSize="12"
-                    fill="black"
+                    fill="black" // **Color Change:** Black text on light node fills
                   >
                     {node.value}
                   </text>
@@ -213,17 +232,36 @@ export default function GraphDisplay({ graphState, selectedAlgorithm }) {
             })}
           </svg>
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-gray-500">
-            <p>
+          // **Color Change:** Placeholder text color to dark gray
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500 p-8 text-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-10 w-10 mb-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+            </svg>
+            <p className="text-lg font-semibold mb-2">
+              Graph Visualization Ready
+            </p>
+            <p className="max-w-md">
               Enter node values (e.g., 1, 2, 3) and optionally edges (e.g., 1-2,
-              2-3:5) and click Generate/Play to start the visualization.{" "}
+              2-3:5) in the controller below, then click **Generate** or
+              **Play** to start the visualization of **{selectedAlgorithm}**.
             </p>
           </div>
         )}
       </div>
-      <p className="text-sm mt-2 text-gray-600">
-        Nodes: {nodes.length}, Edges: {edges.length}. (Visualization is scaled
-        to fit the container.)
+
+      {/* **Color Change:** Info Bar text color to dark gray */}
+      <p className="text-sm mt-4 text-gray-600 text-center">
+        **Current State:** Nodes: {nodes.length}, Edges: {edges.length}. (Graph
+        is scaled to fit the display area.)
       </p>
     </div>
   );

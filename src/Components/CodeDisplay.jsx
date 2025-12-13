@@ -14,6 +14,7 @@ export default function CodeDisplay({ code, currentLine }) {
         fontFamily: "'IBM Plex Mono', monospace",
         color: "white",
         minHeight: "300px",
+        height: "60vh",
       }}
     >
       <h3 className="text-lg font-semibold mb-2 text-[#64FFDA]">
