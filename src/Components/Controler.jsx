@@ -91,7 +91,7 @@ export default function Controler({
     "radix",
   ].includes(selectedAlgoKey);
   const isSearching = ["linear", "binary"].includes(selectedAlgoKey);
-  const isTree = [
+  const constisTree = [
     "treeTraversal",
     "bstInsertion",
     "avlInsertion",
@@ -145,7 +145,7 @@ export default function Controler({
       if (selectedAlgoKey === "prims") return prims(nodes, edgesString, target);
     }
 
-    if (isTree) {
+    if (constisTree) {
       if (selectedAlgoKey === "treeTraversal") return treeTraversal(nodes);
       if (selectedAlgoKey === "bstInsertion") return bstInsertion(nodes);
       if (selectedAlgoKey === "avlInsertion") return avlInsertion(nodes);
@@ -228,10 +228,18 @@ export default function Controler({
 
   return (
     // Outer wrapper for centering
+    // **No Change:** w-full flex justify-center remains to center the component
     <div className="w-full flex justify-center">
-      {/* The actual control bar, which now hugs its content */}
-      <div className="h-[120px] bg-[rgba(18,18,24,0.85)] backdrop-blur-xl rounded-3xl border border-white/10 shadow-xl px-6 flex items-center justify-center space-x-8 max-w-full lg:max-w-fit">
-        {/* LEFT CONTROLS */}
+      {/* The actual control bar:
+          - Removed fixed height: h-auto will allow it to grow in height.
+          - Added flex-wrap for mobile: items will wrap to the next line.
+          - Adjusted spacing for mobile: p-4 and space-y-4/space-x-4
+          - Used lg: to restore the original single-row layout for large screens.
+      */}
+      <div className="h-auto py-4 bg-[rgba(18,18,24,0.85)] backdrop-blur-xl rounded-3xl border border-white/10 shadow-xl px-4 sm:px-6 flex flex-wrap items-center justify-center gap-4 max-w-full lg:h-[120px] lg:flex-nowrap lg:gap-8 lg:px-6">
+        {/* LEFT CONTROLS 
+            - Added shrink-0 to prevent shrinking on mobile.
+        */}
         <div className="flex items-center space-x-2 text-white shrink-0">
           <button
             onClick={handlePlayPause}
@@ -264,9 +272,11 @@ export default function Controler({
           </button>
         </div>
 
-        {/* SPEED SLIDER */}
-        <div className="flex items-center space-x-3 text-white shrink-0 w-[180px]">
-          {/* **Change:** Removed bolding asterisks */}
+        {/* SPEED SLIDER 
+            - Set max width for mobile: max-w-[180px]
+            - Used lg: to restore original fixed width for large screens.
+        */}
+        <div className="flex items-center space-x-3 text-white shrink-0 w-full max-w-[180px] lg:w-[180px]">
           <span className="text-sm shrink-0">Speed: {speed}x</span>
           <input
             type="range"
@@ -278,20 +288,28 @@ export default function Controler({
           />
         </div>
 
-        {/* INPUTS */}
-        <div className="flex items-center space-x-4 text-white font-mono shrink-0">
-          {/* Nodes Input (Always present) */}
+        {/* INPUTS 
+            - Added flex-wrap for mobile to stack inputs if needed.
+            - Used gap-3 for mobile spacing instead of a fixed space-x.
+            - Used lg: to restore the original space-x-4 on large screens.
+        */}
+        <div className="flex flex-wrap items-center justify-center gap-3 text-white font-mono shrink-0 lg:flex-nowrap lg:space-x-4 lg:gap-0">
+          {/* Nodes Input (Always present) 
+              - Used a responsive width: w-full on tiny screens, w-[150px] on small.
+          */}
           <div>
             <label className="text-xs block opacity-70 mb-1">Nodes</label>
             <input
               value={userInputArray}
               onChange={(e) => setUserInputArray(e.target.value)}
-              className="w-[150px] bg-white text-black rounded-lg px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500"
+              className="w-full sm:w-[150px] bg-white text-black rounded-lg px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500"
               placeholder="e.g., 5, 2, 8, 1"
             />
           </div>
 
-          {/* Edges Input (Graph only) */}
+          {/* Edges Input (Graph only) 
+              - Used a responsive width: w-full on tiny screens, w-[120px] on small.
+          */}
           {isGraph && (
             <div>
               <label className="text-xs block opacity-70 mb-1">
@@ -300,14 +318,16 @@ export default function Controler({
               <input
                 value={edgeInput}
                 onChange={(e) => setEdgeInput(e.target.value)}
-                className="w-[120px] bg-white text-black rounded-lg px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500"
+                className="w-full sm:w-[120px] bg-white text-black rounded-lg px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500"
                 placeholder="1-2:3, 2-3:5"
               />
             </div>
           )}
 
-          {/* Target / Start Input (Search or Graph, but not Tree) */}
-          {(isSearching || isGraph) && !isTree && (
+          {/* Target / Start Input (Search or Graph, but not Tree) 
+              - Used a responsive width: w-full on tiny screens, w-[80px] on small.
+          */}
+          {(isSearching || isGraph) && !constisTree && (
             <div>
               <label className="text-xs block opacity-70 mb-1">
                 Target / Start
@@ -316,13 +336,15 @@ export default function Controler({
                 type="number"
                 value={userInputTarget}
                 onChange={(e) => setUserInputTarget(e.target.value)}
-                className="w-[80px] bg-white text-black rounded-lg px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500"
+                className="w-full sm:w-[80px] bg-white text-black rounded-lg px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500"
                 placeholder="1"
               />
             </div>
           )}
 
-          {/* Size Input (Sorting only) */}
+          {/* Size Input (Sorting only) 
+              - Used a responsive width: w-full on tiny screens, w-[70px] on small.
+          */}
           {isSorting && (
             <div>
               <label className="text-xs block opacity-70 mb-1">Size</label>
@@ -330,7 +352,7 @@ export default function Controler({
                 type="number"
                 value={inputSize}
                 onChange={(e) => setInputSize(Number(e.target.value))}
-                className="w-[70px] bg-white text-black rounded-lg px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500"
+                className="w-full sm:w-[70px] bg-white text-black rounded-lg px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500"
                 placeholder="50"
               />
             </div>
@@ -340,8 +362,8 @@ export default function Controler({
         {/* GENERATE BUTTON */}
         <button
           onClick={handleGenerate}
-          // **Change:** Reverted background styling to the original, darker theme
-          className="px-6 py-2 bg-[#1b1b25] border border-white/20 text-white rounded-full hover:bg-[#22222e] shrink-0 transition-all text-sm font-semibold shadow-xl"
+          // Added w-full for full width on mobile, and lg:w-auto to revert on large screens
+          className="px-6 py-2 bg-[#1b1b25] border border-white/20 text-white rounded-full hover:bg-[#22222e] shrink-0 transition-all text-sm font-semibold shadow-xl w-full sm:w-auto"
         >
           Generate
         </button>

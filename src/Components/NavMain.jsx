@@ -3,7 +3,6 @@ import DropDown from "./DropDown";
 import { useState, useEffect } from "react";
 import logo from "../assets/logo2.svg";
 
-// Constant algo types
 const algoTypes = [
   {
     id: "sorting",
@@ -58,27 +57,22 @@ export default function NavMain({
 
   const [algorithms, setAlgorithms] = useState([]);
 
-  // Update algorithm options when type changes
   useEffect(() => {
     const typeObj = algoTypes.find((t) => t.name === selectedType);
-    if (typeObj) {
-      setAlgorithms(typeObj.algorithms);
-    } else {
-      setAlgorithms([]);
-    }
+    if (typeObj) setAlgorithms(typeObj.algorithms);
+    else setAlgorithms([]);
 
-    // Reset algorithm only if the current selection is not in new type
     if (!typeObj || !typeObj.algorithms.includes(selectedAlgorithm)) {
       onSelectAlgorithm("Select Algorithm");
     }
   }, [selectedType, onSelectAlgorithm, selectedAlgorithm]);
 
   return (
-    <nav className="w-full bg-[#121218] flex items-center px-4 sm:px-6 md:px-8 h-16 sm:h-20">
+    <nav className="w-full bg-[#121218] flex flex-wrap sm:flex-nowrap items-center px-4 sm:px-6 md:px-8 py-3 sm:py-0">
       {/* Left side - Logo */}
       <a
         href="/"
-        className="flex items-center space-x-3 min-w-0 cursor-pointer"
+        className="flex items-center space-x-3 min-w-0 cursor-pointer mb-2 sm:mb-0 flex-shrink-0"
       >
         <img src={logo} alt="logo" className="w-20 h-auto" />
         <span className="text-white text-base sm:text-lg md:text-xl lg:text-4xl ml-4 font-mono truncate max-w-[120px] sm:max-w-[200px] md:max-w-[300px]">
@@ -86,32 +80,30 @@ export default function NavMain({
         </span>
       </a>
 
-      {/* Middle menu */}
-      <div className="hidden md:flex items-center space-x-4 sm:space-x-8 lg:space-x-[80px] ml-4 sm:ml-8 md:ml-12 text-white font-['IBM_Plex_Mono'] text-sm sm:text-lg md:text-xl lg:text-[23px]">
-        {/* Algorithm Type Dropdown */}
+      {/* Middle menu - dropdowns + explore */}
+      <div className="flex flex-col sm:flex-row items-center sm:ml-6 space-y-2 sm:space-y-0 sm:space-x-4 lg:space-x-6 w-full sm:w-auto flex-grow">
         <DropDown
           options={algoTypes.map((t) => t.name)}
           selected={selectedType}
           onSelect={onSelectType}
           placeholder="Algorithm Type"
         />
-
-        {/* Algorithm Dropdown */}
         <DropDown
           options={algorithms}
           selected={selectedAlgorithm}
           onSelect={onSelectAlgorithm}
           placeholder="Select Algorithm"
         />
-
-        {/* Explore More */}
-        <span onClick={handleClick} className="cursor-pointer">
+        <span
+          onClick={handleClick}
+          className="cursor-pointer text-white hover:text-gray-300 transition px-2 py-1 rounded"
+        >
           Explore More
         </span>
       </div>
 
       {/* Right side - Dark Mode Icon */}
-      <div className="ml-auto cursor-pointer">
+      <div className="mt-2 sm:mt-0 ml-auto flex-shrink-0 cursor-pointer">
         <svg
           width="32"
           height="32"

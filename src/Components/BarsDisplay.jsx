@@ -6,7 +6,6 @@ import React from "react";
 import "../App.css";
 
 function BarsDisplay({ bars, inputSize, currenStep, lastStep }) {
-  // Normalize bars prop: accept either array OR {bars, comparing, swapping}
   let arr = [];
   let comparing = [];
   let swapping = [];
@@ -21,7 +20,14 @@ function BarsDisplay({ bars, inputSize, currenStep, lastStep }) {
     arr = [];
   }
 
-  const width = Math.max(24, Math.floor(700 / Math.max(1, inputSize)));
+  // Default bar width (original)
+  let width = Math.max(24, Math.floor(700 / Math.max(1, inputSize)));
+
+  // Reduce bar width for small screens
+  const screenWidth = window.innerWidth;
+  if (screenWidth <= 480) {
+    width = Math.max(12, Math.floor(screenWidth / inputSize) - 4); // small width for mobile
+  }
 
   return (
     <div
@@ -33,15 +39,14 @@ function BarsDisplay({ bars, inputSize, currenStep, lastStep }) {
         borderRadius: "12px",
         padding: "20px",
         height: "320px",
-        overflowX: "auto",
+        overflowX: "auto", // allow horizontal scroll on small screens
       }}
     >
       {arr.map((value, index) => {
         let color = "white";
         if (currenStep === lastStep) color = "#22C55E";
-        else if (swapping.includes(index))
-          color = "#ff6b6b"; // red for swapping
-        else if (comparing.includes(index)) color = "#ffb86b"; // orange for comparing
+        else if (swapping.includes(index)) color = "#ff6b6b";
+        else if (comparing.includes(index)) color = "#ffb86b";
 
         return (
           <div
@@ -68,8 +73,6 @@ function BarsDisplay({ bars, inputSize, currenStep, lastStep }) {
       })}
     </div>
   );
-
-
 }
 
 export default BarsDisplay;

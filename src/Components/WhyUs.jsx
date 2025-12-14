@@ -5,18 +5,33 @@ import CompareIcon from "./CompareIcon";
 
 export default function WhyUs() {
   return (
-    <div className="relative mt-[50px] mb-[580px] w-full flex justify-center">
-      <div className="absolute w-[885.25px] h-[492px] left-[122.25px] top-0">
+    <div className="relative w-full flex justify-center mt-12 lg:mt-[50px] mb-12 lg:mb-[580px]">
+      
+      <div
+        className="
+          w-full max-w-[885.25px]
+          px-4
+          lg:px-0
+          lg:absolute
+          lg:h-[492px]
+          lg:left-[122.25px]
+          lg:top-0
+        "
+      >
         <span
           id="target-span"
-          className="font-['IBM_Plex_Mono'] font-normal text-[24px] leading-[100%] tracking-[0] text-black"
+          className="block mb-6 font-['IBM_Plex_Mono'] font-normal text-lg lg:text-[24px] leading-[100%] text-black"
         >
           Why use this DSA visualizer ?
         </span>
-        <Eye />
-        <Game />
-        <CodeIcon />
-        <CompareIcon />
+
+        {/* Icons */}
+        <div className="flex flex-col lg:block gap-8">
+          <Eye />
+          <Game />
+          <CodeIcon />
+          <CompareIcon />
+        </div>
       </div>
     </div>
   );

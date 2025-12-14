@@ -7,7 +7,7 @@ import BarsDisplay from "./BarsDisplay";
 import CodeDisplay from "./CodeDisplay";
 import SearchDisplay from "./SearchDisplay.jsx";
 import TreeDisplay from "./TreeDisplay";
-import GraphDisplay from "./GraphDisplay"; // <-- NEW IMPORT
+import GraphDisplay from "./GraphDisplay";
 
 // Algorithm imports
 import { selectionSortCode } from "../algorithms/selectionSort.js";
@@ -27,13 +27,12 @@ import { avlInsertionCode } from "../algorithms/avlInsertion.js";
 import { trieInsertionCode } from "../algorithms/trieInsertion.js";
 import { segmentTreeBuildCode } from "../algorithms/segmentTreeBuild.js";
 
-// --- GRAPH ALGORITHM IMPORTS (NEW) ---
+// Graph algorithms
 import { bfsCode } from "../algorithms/bfs.js";
 import { dfsCode } from "../algorithms/dfs.js";
 import { dijkstraCode } from "../algorithms/dijkstra.js";
 import { kruskalCode } from "../algorithms/kruskal.js";
 import { primsCode } from "../algorithms/prims.js";
-// -------------------------------------
 
 import "../App.css";
 
@@ -52,13 +51,11 @@ const algoCodeKeyMap = {
   "AVL Insertion": "avlInsertion",
   "Trie Insertion": "trieInsertion",
   "Segment Tree Build": "segmentTreeBuild",
-  // --- GRAPH MAPPINGS ---
   "Depth First Search": "dfs",
   "Breadth First Search": "bfs",
   "Dijkstra's Algorithm": "dijkstra",
   "Kruskal's Algorithm": "kruskal",
   "Prim's Algorithm": "prims",
-  // ----------------------
 };
 
 const algoCodes = {
@@ -76,13 +73,11 @@ const algoCodes = {
   avlInsertion: avlInsertionCode,
   trieInsertion: trieInsertionCode,
   segmentTreeBuild: segmentTreeBuildCode,
-  // --- GRAPH CODE MAPPINGS ---
   bfs: bfsCode,
   dfs: dfsCode,
   dijkstra: dijkstraCode,
   kruskal: kruskalCode,
   prims: primsCode,
-  // ---------------------------
   default: `// Select an algorithm to view visualization!`,
 };
 
@@ -90,20 +85,17 @@ export default function MainPage() {
   const initialArr = [1, 69, 10, 82, 11, 25, 8, 14, 2, 51];
 
   const location = useLocation();
-  const [selectedAlgorithm, setSelectedAlgorithm] =
-    useState("Select Algorithm");
+  const [selectedAlgorithm, setSelectedAlgorithm] = useState("Select Algorithm");
   const [selectedType, setSelectedType] = useState("Select Type");
   const [isPlaying, setPlaying] = useState(false);
-  // The 'bars' state is overloaded to handle Bars, Search, Tree, and Graph data
   const [bars, setBars] = useState({
     bars: initialArr,
     comparing: [],
     swapping: [],
-    root: null, // For trees
-    nodes: [], // For graphs
-    edges: [], // For graphs
+    root: null,
+    nodes: [],
+    edges: [],
   });
-
   const [inputSize, setInputSize] = useState(initialArr.length);
   const [steps, setSteps] = useState([]);
   const [currentStep, setCurrentStep] = useState(0);
@@ -112,7 +104,7 @@ export default function MainPage() {
 
   const selectedAlgorithmKey = algoCodeKeyMap[selectedAlgorithm] || null;
 
-  // Effect 1: Handle navigation and set selectedType
+  // Set selectedAlgorithm on navigation
   useEffect(() => {
     if (location.state?.selectedTitle) {
       const algoTitle = location.state.selectedTitle;
@@ -120,7 +112,6 @@ export default function MainPage() {
 
       const titleLower = algoTitle.toLowerCase();
 
-      // Graph first
       if (
         titleLower.includes("dijkstra") ||
         titleLower.includes("kruskal") ||
@@ -148,7 +139,7 @@ export default function MainPage() {
     }
   }, [location.state]);
 
-  // Effect 2: Playback interval
+  // Playback effect
   useEffect(() => {
     if (!selectedAlgorithmKey || !isPlaying || steps.length === 0) return;
 
@@ -165,19 +156,18 @@ export default function MainPage() {
     return () => clearInterval(id);
   }, [isPlaying, speed, steps, selectedAlgorithmKey]);
 
-  // Effect 3: Step update
+  // Step update
   useEffect(() => {
     if (steps.length > 0 && currentStep < steps.length) {
       setBars(steps[currentStep]);
     }
   }, [currentStep, steps]);
 
-  // Effect 4: Reset on algo change
+  // Reset on algorithm change
   useEffect(() => {
     setSteps([]);
     setCurrentStep(0);
     setPlaying(false);
-    // Reset all data structures
     setBars({
       bars: initialArr,
       comparing: [],
@@ -200,60 +190,46 @@ export default function MainPage() {
         onSelectType={setSelectedType}
       />
 
+      {/* Main content */}
       <div className="flex-grow flex flex-col p-4 pt-8">
-        <div className="flex justify-start items-start w-full gap-4 max-h-[450px]">
-          <div className="w-[200px]">
+        {/* Visualization + Legend + Code */}
+        <div className="flex flex-col sm:flex-row flex-wrap w-full gap-4 max-h-full">
+          {/* Legend */}
+          <div className="w-full sm:w-[200px] min-w-0">
             <ColorLegend
               selectedAlgorithm={selectedAlgorithm}
               selectedType={selectedType}
             />
           </div>
 
-          {selectedType === "Sorting" && (
-            <div className="flex-1 min-w-0">
+          {/* Visualization */}
+          <div className="flex-1 min-w-0">
+            {selectedType === "Sorting" && (
               <BarsDisplay
                 bars={bars}
                 inputSize={inputSize}
                 currentStep={currentStep}
                 lastStep={steps.length - 1}
               />
-            </div>
-          )}
+            )}
+            {selectedType === "Searching" && (
+              <SearchDisplay bars={bars} selectedAlgorithm={selectedAlgorithm} />
+            )}
+            {selectedType === "Tree" && (
+              <TreeDisplay treeState={bars} selectedAlgorithm={selectedAlgorithm} />
+            )}
+            {selectedType === "Graph" && (
+              <GraphDisplay graphState={bars} selectedAlgorithm={selectedAlgorithm} />
+            )}
+          </div>
 
-          {selectedType === "Searching" && (
-            <div className="flex-1 min-w-0">
-              <SearchDisplay
-                bars={bars}
-                selectedAlgorithm={selectedAlgorithm}
-              />
-            </div>
-          )}
-
-          {selectedType === "Tree" && (
-            <div className="flex-1 min-w-0">
-              <TreeDisplay
-                treeState={bars}
-                selectedAlgorithm={selectedAlgorithm}
-              />
-            </div>
-          )}
-
-          {/* --- NEW GRAPH DISPLAY LOGIC --- */}
-          {selectedType === "Graph" && (
-            <div className="flex-1 min-w-0">
-              <GraphDisplay
-                graphState={bars}
-                selectedAlgorithm={selectedAlgorithm}
-              />
-            </div>
-          )}
-          {/* --------------------------------- */}
-
-          <div className="w-1/4 min-w-[300px]">
+          {/* Code Display */}
+          <div className="w-full sm:w-1/4 min-w-0">
             <CodeDisplay code={codeToDisplay} currentLine={currentLine} />
           </div>
         </div>
 
+        {/* Controller */}
         <div className="flex justify-center mt-auto py-4">
           <Controler
             bars={bars}
